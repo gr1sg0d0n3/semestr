@@ -170,6 +170,14 @@ main { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 .steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
 .steps b { color: var(--fg); font-weight: 600; }
 
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg); cursor: pointer; font-size: 14px; }
+.opt input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+.rem-subj summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+.rem-subj .opts { margin-top: 8px; }
+.sel-row { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.sel-row select { font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+
 /* Нижние вкладки */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bar-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .tabbar-in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 max(8px, env(safe-area-inset-left, 0px)) 0 max(8px, env(safe-area-inset-right, 0px)); }
@@ -238,16 +246,27 @@ main { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
         <p class="muted" id="codeMsg" role="status"></p>
       </div>
 
-      <div class="card panel">
-        <h2>Напоминания</h2>
-        <p class="muted">Сайт не может присылать уведомления на iPhone сам. Надёжный способ — события календаря со звуковыми напоминаниями: Календарь напомнит о вебинарах и сроках, даже когда сайт закрыт.</p>
-        <a class="btn" href="semestr.ics" id="icsLink">Добавить напоминания в календарь</a>
-        <ol class="steps">
-          <li>Нажмите кнопку в <b>Safari</b> и выберите «Добавить все».</li>
-          <li>Вебинары: напоминание за день и за 30 минут.</li>
-          <li>Сроки (работы, тесты, итоговое): за 14, 7, 3 и 1 день и в день срока в 09:00.</li>
-          <li>Календарь не знает, что вы уже выполнили. Лишние события можно удалить.</li>
-        </ol>
+      <div class="card panel" id="remPanel">
+        <h2>Напоминания в календарь</h2>
+        <p class="muted">Сайт не может присылать уведомления на iPhone сам, зато Календарь напомнит о нужных заданиях, даже когда сайт закрыт. Выберите, что добавить.</p>
+        <div class="opts" id="remKinds" role="group" aria-label="Что добавить">
+          <label class="opt"><input type="checkbox" data-k="w"><span>Вебинары</span></label>
+          <label class="opt"><input type="checkbox" data-k="t"><span>Тесты</span></label>
+          <label class="opt"><input type="checkbox" data-k="r"><span>Рейтинговые работы</span></label>
+          <label class="opt"><input type="checkbox" data-k="f"><span>Итоговое тестирование</span></label>
+        </div>
+        <label class="opt"><input type="checkbox" id="remTodo"><span>Только невыполненные</span></label>
+        <details class="rem-subj">
+          <summary id="remSubjSum">Предметы: все</summary>
+          <div class="opts" id="remSubj"></div>
+        </details>
+        <div class="sel-row"><label for="remWa">О вебинарах напомнить</label>
+          <select id="remWa"><option value="a">за день и за 30 минут</option><option value="b">за 30 минут</option><option value="c">за час</option><option value="d">за 15 минут</option></select></div>
+        <div class="sel-row"><label for="remDa">О сроках напомнить</label>
+          <select id="remDa"><option value="a">за 7, 3 и 1 день и в день срока</option><option value="b">за 14, 7, 3 и 1 день и в день срока</option><option value="c">за 1 день и в день срока</option><option value="d">только в день срока</option></select></div>
+        <p class="muted" id="remCount" role="status"></p>
+        <button type="button" class="btn" id="remGo">Скачать и добавить в календарь</button>
+        <p class="muted">Нажмите «Добавить все» в окне Календаря. Напоминания приходят в 09:00 (вебинары по их времени). Лучше открывать сайт в Safari, а не в иконке на экране «Домой», там скачивание может не сработать.</p>
       </div>
 
       <div class="card panel">
@@ -343,7 +362,7 @@ DATA.forEach((d, i) => d.items.forEach((it, j) => {
   state[it.id] = !!it.done; ts[it.id] = 0;
   ALL.push(it);
 }));
-const ui = { tab: 'home', kind: 'all', todo: false, open: [] };
+const ui = { tab: 'home', kind: 'all', todo: false, open: [], rem: { k: { w: true, t: true, r: true, f: true }, todo: true, off: [], wa: 'a', da: 'a' } };
 let filter = 'all', syncTimer = null, syncing = false, cfg = null, code = '';
 
 try {
@@ -356,6 +375,13 @@ try {
   if (['all', 'w', 't', 'r', 'f'].indexOf(u.kind) >= 0) ui.kind = u.kind;
   ui.todo = !!u.todo;
   if (Array.isArray(u.open)) ui.open = u.open.filter(n => Number.isInteger(n));
+  if (u.rem && typeof u.rem === 'object') {
+    ['w', 't', 'r', 'f'].forEach(k => { if (u.rem.k && typeof u.rem.k[k] === 'boolean') ui.rem.k[k] = u.rem.k[k]; });
+    if (typeof u.rem.todo === 'boolean') ui.rem.todo = u.rem.todo;
+    if (Array.isArray(u.rem.off)) ui.rem.off = u.rem.off.filter(n => Number.isInteger(n));
+    if (/^[abcd]$/.test(u.rem.wa)) ui.rem.wa = u.rem.wa;
+    if (/^[abcd]$/.test(u.rem.da)) ui.rem.da = u.rem.da;
+  }
 } catch (e) {}
 
 function save() {
@@ -617,6 +643,7 @@ $('#pill').addEventListener('click', () => { go('more'); setTimeout(() => { cons
 function render() {
   renderHome();
   renderSubjects();
+  if (typeof remUi === 'function' && $('#remSubj')) remUi();
   const miss = ALL.filter(x => x.k === 'w' && isOpen(x) && x.at < new Date()).length;
   const old = $('.tb[data-go="subjects"] .badge');
   if (old) old.remove();
@@ -749,6 +776,91 @@ $('#codeOff').addEventListener('click', () => {
   cfg = null; code = '';
   try { localStorage.removeItem(CKEY); } catch (e) {}
   updateSyncUI(); sync();
+});
+
+
+/* ---------- Напоминания: календарь .ics по выбору ---------- */
+const WA = { a: ['-P1D', '-PT30M'], b: ['-PT30M'], c: ['-PT1H'], d: ['-PT15M'] };
+const DA = { a: [7, 3, 1, 0], b: [14, 7, 3, 1, 0], c: [1, 0], d: [0] };
+const dayTrig = n => n === 0 ? 'PT9H' : '-P' + (n - 1) + 'DT15H';  // n дней до срока в 09:00
+function remItems() {
+  const r = ui.rem, now = new Date();
+  return ALL.filter(it => r.k[it.k] && r.off.indexOf(it.di) < 0 && (!r.todo || isOpen(it))
+    && (it.k === 'w' ? it.at > now : sod(it.until || it.due) >= sod(now)));
+}
+function icsEsc(t) { return String(t).replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
+function icsFold(line) {
+  const enc = new TextEncoder(), out = []; let cur = '', n = 0, lim = 74;
+  for (const ch of line) {
+    const b = enc.encode(ch).length;
+    if (n + b > lim) { out.push(cur); cur = ''; n = 0; lim = 73; }
+    cur += ch; n += b;
+  }
+  out.push(cur);
+  return out.join('\r\n ');
+}
+function buildIcs() {
+  const L = [], add = x => L.push(icsFold(x));
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ymd = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+  const ymdhm = d => ymd(d) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
+  const alarm = (tr, txt) => { add('BEGIN:VALARM'); add('ACTION:DISPLAY'); add('DESCRIPTION:' + icsEsc(txt)); add('TRIGGER:' + tr); add('END:VALARM'); };
+  ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Semestr checklist//RU//', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Семестр', 'X-WR-TIMEZONE:Europe/Moscow',
+    'BEGIN:VTIMEZONE', 'TZID:Europe/Moscow', 'BEGIN:STANDARD', 'DTSTART:19700101T000000', 'TZOFFSETFROM:+0300', 'TZOFFSETTO:+0300', 'TZNAME:MSK', 'END:STANDARD', 'END:VTIMEZONE'].forEach(add);
+  remItems().forEach(it => {
+    const d = DATA[it.di];
+    add('BEGIN:VEVENT'); add('UID:' + it.id + '@semestr'); add('DTSTAMP:' + stamp);
+    if (it.k === 'w') {
+      add('DTSTART;TZID=Europe/Moscow:' + ymdhm(it.at));
+      add('DTEND;TZID=Europe/Moscow:' + ymdhm(new Date(it.at.getTime() + 3600000)));
+      add('SUMMARY:' + icsEsc('Вебинар: ' + d.s));
+      if (it.note) add('DESCRIPTION:' + icsEsc('Преподаватель: ' + it.note));
+      WA[ui.rem.wa].forEach(t => alarm(t, 'Вебинар: ' + d.s));
+    } else {
+      const last = it.until || it.due;
+      add('DTSTART;VALUE=DATE:' + ymd(it.due));
+      add('DTEND;VALUE=DATE:' + ymd(new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1)));
+      const nm = it.k === 'f' ? 'Итоговое тестирование' : it.k === 'r' ? 'Рейтинговая работа' : it.title;
+      const sum = (it.k === 'f' ? nm + ' (21.12 – 27.12)' : nm + ' (срок ' + fmtDM(it.due) + ')') + ': ' + d.s;
+      add('SUMMARY:' + icsEsc(sum)); add('TRANSP:TRANSPARENT');
+      DA[ui.rem.da].forEach(n => alarm(dayTrig(n), sum));
+    }
+    add('END:VEVENT');
+  });
+  add('END:VCALENDAR');
+  return L.join('\r\n') + '\r\n';
+}
+function remUi() {
+  const r = ui.rem;
+  document.querySelectorAll('#remKinds input').forEach(i => { i.checked = !!r.k[i.dataset.k]; });
+  $('#remTodo').checked = r.todo; $('#remWa').value = r.wa; $('#remDa').value = r.da;
+  const box = $('#remSubj');
+  if (!box.children.length) DATA.forEach((d, i) => {
+    const lab = el('label', 'opt'), cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.dataset.i = i;
+    cb.addEventListener('change', () => {
+      const p = ui.rem.off.indexOf(i);
+      if (cb.checked && p >= 0) ui.rem.off.splice(p, 1);
+      if (!cb.checked && p < 0) ui.rem.off.push(i);
+      saveUi(); remUi();
+    });
+    lab.appendChild(cb); lab.appendChild(el('span', null, d.s)); box.appendChild(lab);
+  });
+  box.querySelectorAll('input').forEach(cb => { cb.checked = r.off.indexOf(+cb.dataset.i) < 0; });
+  $('#remSubjSum').textContent = r.off.length ? 'Предметы: ' + (DATA.length - r.off.length) + ' из ' + DATA.length : 'Предметы: все';
+  const n = remItems().length;
+  $('#remCount').textContent = n ? 'Будет добавлено событий: ' + n : 'Ничего не выбрано или всё уже выполнено';
+  $('#remGo').disabled = !n;
+}
+document.querySelectorAll('#remKinds input').forEach(i => i.addEventListener('change', () => { ui.rem.k[i.dataset.k] = i.checked; saveUi(); remUi(); }));
+$('#remTodo').addEventListener('change', e => { ui.rem.todo = e.target.checked; saveUi(); remUi(); });
+$('#remWa').addEventListener('change', e => { ui.rem.wa = e.target.value; saveUi(); });
+$('#remDa').addEventListener('change', e => { ui.rem.da = e.target.value; saveUi(); });
+$('#remGo').addEventListener('click', () => {
+  const blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = 'semestr.ics'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 });
 
 /* ---------- Запуск ---------- */

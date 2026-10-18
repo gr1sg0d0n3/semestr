@@ -1,5 +1,5 @@
 // Меняйте версию при каждом обновлении index.html, чтобы телефон забрал новую страницу.
-var CACHE = 'semestr-v5';
+var CACHE = 'semestr-v6';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
