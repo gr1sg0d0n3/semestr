@@ -111,6 +111,13 @@ button { -webkit-tap-highlight-color: transparent; }
 .req summary { cursor: pointer; font-weight: 600; }
 .req summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 .req ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
+.sync-body { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.hint { margin: 0; font-size: 14px; color: var(--muted); }
+.code-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.code-row input { flex: 1 1 200px; min-width: 0; font: inherit; font-size: 16px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+.code-row button { font: inherit; font-size: 14px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--surface); cursor: pointer; }
+.code-row button.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.code-row input:focus-visible, .code-row button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .filters button { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
 .filters button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
@@ -195,6 +202,28 @@ button { -webkit-tap-highlight-color: transparent; }
   </div>
 
   <main class="list" id="list"></main>
+
+  <details class="req" id="syncBox">
+    <summary>Синхронизация между устройствами</summary>
+    <div class="sync-body">
+      <div id="codeNone">
+        <p class="hint">Вставьте код синхронизации, чтобы отметки совпадали на телефоне и компьютере.</p>
+        <div class="code-row">
+          <input id="codeInput" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Код синхронизации">
+          <button type="button" id="codeSave">Подключить</button>
+        </div>
+      </div>
+      <div id="codeHave" hidden>
+        <p class="hint">Синхронизация включена. Этот код нужно вставить на других устройствах. Никому его не показывайте.</p>
+        <div class="code-row">
+          <input id="codeShown" type="text" readonly autocomplete="off" spellcheck="false" aria-label="Код синхронизации">
+          <button type="button" id="codeCopy">Скопировать</button>
+          <button type="button" id="codeOff" class="ghost">Отключить</button>
+        </div>
+      </div>
+      <p class="hint" id="codeMsg" role="status"></p>
+    </div>
+  </details>
 </div>
 
 <script>
@@ -237,8 +266,8 @@ var DATA = [
     items: [T(1), F()] }
 ];
 
-var KEY = 'semestr-checklist-v1', TSKEY = 'semestr-ts-v1', SKEY = 'semestr-sync-key';
-var state = {}, ts = {}, filter = 'all', syncKey = '', syncTimer = null;
+var KEY = 'semestr-checklist-v1', TSKEY = 'semestr-ts-v1', CKEY = 'semestr-sync-code';
+var state = {}, ts = {}, filter = 'all', syncTimer = null, syncing = false, cfg = null, code = '';
 
 DATA.forEach(function (d, i) { d.items.forEach(function (it, j) { it.id = i + '-' + j; state[it.id] = !!it.done; ts[it.id] = 0; }); });
 try {
@@ -247,11 +276,57 @@ try {
   var savedTs = JSON.parse(localStorage.getItem(TSKEY) || '{}');
   Object.keys(savedTs).forEach(function (k) { if (k in ts) ts[k] = savedTs[k]; });
 } catch (e) {}
-try {
-  var q = new URLSearchParams(location.search);
-  if (q.get('k')) { localStorage.setItem(SKEY, q.get('k')); history.replaceState(null, '', location.pathname); }
-  syncKey = localStorage.getItem(SKEY) || '';
-} catch (e) {}
+
+// <sync-core>
+// Код синхронизации: ID_ПРОЕКТА~КЛЮЧ_API~СЕКРЕТНЫЙ_НОМЕР_СПИСКА
+function parseCode(c) {
+  var p = String(c || '').trim().split('~');
+  if (p.length !== 3) return null;
+  if (!/^[a-z0-9-]{4,40}$/.test(p[0])) return null;
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(p[1])) return null;
+  if (!/^[A-Za-z0-9]{20,64}$/.test(p[2])) return null;
+  return { p: p[0], a: p[1], l: p[2] };
+}
+function docUrl(c) {
+  return 'https://firestore.googleapis.com/v1/projects/' + c.p + '/databases/(default)/documents/lists/' + c.l;
+}
+function itemToField(done, stamp) {
+  return { mapValue: { fields: { d: { booleanValue: !!done }, t: { integerValue: String(stamp) } } } };
+}
+function remoteItems(doc) {
+  var out = {};
+  var f = doc && doc.fields && doc.fields.items && doc.fields.items.mapValue && doc.fields.items.mapValue.fields;
+  if (!f) return out;
+  Object.keys(f).forEach(function (id) {
+    var v = f[id] && f[id].mapValue && f[id].mapValue.fields;
+    if (!v || !v.t) return;
+    var t = parseInt(v.t.integerValue, 10);
+    if (isNaN(t)) return;
+    out[id] = [!!(v.d && v.d.booleanValue), t];
+  });
+  return out;
+}
+// Что взять с сервера и что отправить на сервер. Побеждает более новая отметка.
+function planMerge(local, localTs, remote) {
+  var pull = {}, push = [];
+  Object.keys(remote).forEach(function (id) {
+    if (id in local && remote[id][1] > localTs[id]) pull[id] = remote[id];
+  });
+  Object.keys(local).forEach(function (id) {
+    if (localTs[id] > 0 && (!(id in remote) || localTs[id] > remote[id][1])) push.push(id);
+  });
+  return { pull: pull, push: push };
+}
+function patchRequest(c, ids, local, localTs) {
+  var q = 'key=' + encodeURIComponent(c.a);
+  var fields = {};
+  ids.forEach(function (id) {
+    q += '&updateMask.fieldPaths=' + encodeURIComponent('items.`' + id + '`');
+    fields[id] = itemToField(local[id], localTs[id]);
+  });
+  return { url: docUrl(c) + '?' + q, body: { fields: { items: { mapValue: { fields: fields } } } } };
+}
+// </sync-core>
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem(TSKEY, JSON.stringify(ts)); } catch (e) {}
@@ -259,33 +334,60 @@ function save() {
 
 function setSync(text) { var n = document.getElementById('sync'); if (n) n.textContent = text; }
 
+function loadCode(c) {
+  var parsed = parseCode(c);
+  if (!parsed) return false;
+  cfg = parsed; code = c.trim();
+  try { localStorage.setItem(CKEY, code); } catch (e) {}
+  return true;
+}
+try {
+  var q = new URLSearchParams(location.search);
+  if (q.get('c')) { loadCode(q.get('c')); history.replaceState(null, '', location.pathname); }
+  else { loadCode(localStorage.getItem(CKEY) || ''); }
+} catch (e) {}
+
 function sync() {
-  if (!syncKey) { setSync('Отметки хранятся только на этом устройстве'); return; }
+  if (!cfg) { setSync('Отметки хранятся только на этом устройстве'); return; }
   if (!navigator.onLine) { setSync('Нет сети. Синхронизация пройдёт позже'); return; }
-  var items = {};
-  Object.keys(state).forEach(function (id) { if (ts[id] > 0) items[id] = [state[id], ts[id]]; });
-  fetch('api/sync', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Key': syncKey },
-    body: JSON.stringify({ items: items })
-  }).then(function (r) {
-    if (r.status === 401) throw new Error('key');
+  if (syncing) { scheduleSync(); return; }
+  syncing = true;
+  var c = cfg;
+  fetch(docUrl(c) + '?key=' + encodeURIComponent(c.a)).then(function (r) {
+    if (r.status === 404) return {};
+    if (r.status === 403) throw new Error('rules');
+    if (r.status === 400) throw new Error('key');
     if (!r.ok) throw new Error('http');
     return r.json();
-  }).then(function (data) {
-    var changed = false;
-    Object.keys(data.items || {}).forEach(function (id) {
-      if (!(id in state)) return;
-      var v = data.items[id];
-      if (v[1] > ts[id]) { state[id] = !!v[0]; ts[id] = v[1]; changed = true; }
+  }).then(function (doc) {
+    var plan = planMerge(state, ts, remoteItems(doc));
+    var pulled = Object.keys(plan.pull);
+    pulled.forEach(function (id) { state[id] = plan.pull[id][0]; ts[id] = plan.pull[id][1]; });
+    if (pulled.length) { save(); render(); }
+    if (!plan.push.length) return;
+    var req = patchRequest(c, plan.push, state, ts);
+    return fetch(req.url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req.body) }).then(function (r) {
+      if (r.status === 403) throw new Error('rules');
+      if (!r.ok) throw new Error('http');
     });
-    if (changed) { save(); render(); }
+  }).then(function () {
     setSync('Синхронизировано в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
   }).catch(function (e) {
-    setSync(e.message === 'key' ? 'Неверный ключ синхронизации' : 'Сервер недоступен. Отметки сохранены на устройстве');
-  });
+    setSync(e.message === 'rules' ? 'Сервер отклонил запрос. Проверьте правила Firestore и код' :
+            e.message === 'key' ? 'Неверный ключ API в коде синхронизации' :
+            'Сервер недоступен. Отметки сохранены на устройстве');
+  }).then(function () { syncing = false; });
 }
 function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 600); }
+
+function updateSyncUI() {
+  var input = document.getElementById('codeInput');
+  var have = document.getElementById('codeHave');
+  var none = document.getElementById('codeNone');
+  if (!input) return;
+  have.hidden = !cfg; none.hidden = !!cfg;
+  document.getElementById('codeShown').value = code;
+}
 
 function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 
@@ -354,7 +456,28 @@ document.querySelectorAll('.filters button').forEach(function (b) {
   });
 });
 render();
+updateSyncUI();
 sync();
+document.getElementById('codeSave').addEventListener('click', function () {
+  var v = document.getElementById('codeInput').value;
+  var msg = document.getElementById('codeMsg');
+  if (!loadCode(v)) { msg.textContent = 'Код не подходит. Проверьте, что вставили его целиком, без пробелов'; return; }
+  document.getElementById('codeInput').value = '';
+  msg.textContent = '';
+  updateSyncUI(); sync();
+});
+document.getElementById('codeCopy').addEventListener('click', function () {
+  var inp = document.getElementById('codeShown'); var msg = document.getElementById('codeMsg');
+  inp.select();
+  var done = function () { msg.textContent = 'Код скопирован'; };
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(code).then(done).catch(function () { msg.textContent = 'Выделите код и скопируйте вручную'; }); }
+  else { msg.textContent = 'Выделите код и скопируйте вручную'; }
+});
+document.getElementById('codeOff').addEventListener('click', function () {
+  cfg = null; code = '';
+  try { localStorage.removeItem(CKEY); } catch (e) {}
+  updateSyncUI(); setSync('Отметки хранятся только на этом устройстве');
+});
 document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
 window.addEventListener('online', sync);
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
