@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Чек-лист семестра</title>
+<meta name="description" content="Список заданий семестра: вебинары, тесты, рейтинговые работы и итоговое тестирование.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Семестр">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3f5f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1621" media="(prefers-color-scheme: dark)">
+<style>
+/* Layout: narrow single column; summary band with key dates, then one block per discipline with tickable rows. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --fg: #16202e;
+  --muted: #5d6a7c;
+  --line: #dde3ec;
+  --accent: #1f6f5c;
+  --accent-soft: #dcefe9;
+  --k-web: #2b5cab;
+  --k-web-bg: #e3ecfa;
+  --k-rate: #9a5a00;
+  --k-rate-bg: #fbeed4;
+  --k-final: #8a2f4f;
+  --k-final-bg: #f7e2ea;
+  --k-test: #46546a;
+  --k-test-bg: #e8ecf2;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1621;
+    --surface: #17202e;
+    --fg: #e6ebf3;
+    --muted: #93a1b5;
+    --line: #2a3648;
+    --accent: #4fc1a3;
+    --accent-soft: #17382f;
+    --k-web: #8fb4f0;
+    --k-web-bg: #1c2b46;
+    --k-rate: #f0be6a;
+    --k-rate-bg: #3a2b10;
+    --k-final: #f0a1bd;
+    --k-final-bg: #3b1a29;
+    --k-test: #b4c0d2;
+    --k-test-bg: #243044;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1621;
+  --surface: #17202e;
+  --fg: #e6ebf3;
+  --muted: #93a1b5;
+  --line: #2a3648;
+  --accent: #4fc1a3;
+  --accent-soft: #17382f;
+  --k-web: #8fb4f0;
+  --k-web-bg: #1c2b46;
+  --k-rate: #f0be6a;
+  --k-rate-bg: #3a2b10;
+  --k-final: #f0a1bd;
+  --k-final-bg: #3b1a29;
+  --k-test: #b4c0d2;
+  --k-test-bg: #243044;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-top: calc(28px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-size: 28px; line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.sync { font-size: 13px; }
+html { -webkit-text-size-adjust: 100%; }
+button { -webkit-tap-highlight-color: transparent; }
+
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.prog-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.prog-num { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.prog-num span { color: var(--muted); font-weight: 400; font-size: 15px; }
+.bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; width: 0; transition: width .25s ease; }
+.dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.dates li { border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dates b { font-family: var(--font-mono); font-weight: 500; font-size: 13px; }
+.dates span { font-size: 13px; }
+.dates .kw { background: var(--k-web-bg); color: var(--k-web); }
+.dates .kt { background: var(--k-test-bg); color: var(--k-test); }
+.dates .kr { background: var(--k-rate-bg); color: var(--k-rate); }
+.dates .kf { background: var(--k-final-bg); color: var(--k-final); }
+
+.req { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+.req summary { cursor: pointer; font-weight: 600; }
+.req summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.req ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters button { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.filters button:focus-visible, .row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.list { display: flex; flex-direction: column; gap: 14px; }
+.disc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.disc-head { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 3px; border-bottom: 1px solid var(--line); }
+.disc-title { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.disc-title h2 { font-size: 16px; line-height: 1.3; margin: 0; font-weight: 600; text-wrap: balance; min-width: 0; }
+.disc-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
+.disc-meta { color: var(--muted); font-size: 13px; }
+.disc-mat { font-size: 13px; margin-top: 4px; display: flex; gap: 8px; align-items: baseline; }
+.disc-mat b { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); flex: none; }
+.disc-mat span { min-width: 0; }
+.disc-mat.none b, .disc-mat.none span { color: var(--muted); }
+.disc.complete .disc-count { color: var(--accent); }
+
+.row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.disc-head + .row { border-top: 0; }
+.row input { appearance: none; -webkit-appearance: none; flex: none; width: 22px; height: 22px; margin: 0; border: 2px solid var(--muted); border-radius: 6px; background: transparent; cursor: pointer; display: grid; place-content: center; }
+.row input::after { content: ""; width: 10px; height: 6px; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.row input:checked { background: var(--accent); border-color: var(--accent); }
+.row input:checked::after { opacity: 1; }
+.row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row-title { font-weight: 500; }
+.row-note { font-size: 13px; color: var(--muted); }
+.row.done .row-title { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.chip { flex: none; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip.w { background: var(--k-web-bg); color: var(--k-web); }
+.chip.t { background: var(--k-test-bg); color: var(--k-test); }
+.chip.r { background: var(--k-rate-bg); color: var(--k-rate); }
+.chip.f { background: var(--k-final-bg); color: var(--k-final); }
+.row.done .chip { opacity: .6; }
+.empty { color: var(--muted); text-align: center; padding: 28px 0; }
+@media (max-width: 480px) {
+  .row { flex-wrap: wrap; }
+  .row-body { flex-basis: calc(100% - 40px); }
+  .chip { margin-left: 34px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Чек-лист семестра</h1>
+    <p class="sub">13 дисциплин. Отмечайте задания, когда они выполнены.</p>
+    <p class="sub sync" id="sync"></p>
+  </header>
+
+  <section class="summary" aria-label="Прогресс и сроки">
+    <div class="prog-row">
+      <div class="prog-num" id="progNum"></div>
+      <div class="sub" style="margin:0" id="progLeft"></div>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bar"><i id="barFill"></i></div>
+    <ul class="dates">
+      <li class="kw"><b>20.10 – 27.10</b><span>Вебинары</span></li>
+      <li class="kr"><b>до 06.12</b><span>Рейтинговые работы</span></li>
+      <li class="kt"><b>до 20.12</b><span>Тесты в разделах</span></li>
+      <li class="kf"><b>21.12 – 27.12</b><span>Итоговое тестирование</span></li>
+    </ul>
+  </section>
+
+  <details class="req">
+    <summary>Требования к рейтинговым работам</summary>
+    <ul>
+      <li>Реферат 10–12 страниц: введение 1 стр., основная часть 5–7 стр., заключение 1 стр.</li>
+      <li>Times New Roman 14, интервал 1,5, отступ 1,25 см, по ширине. Поля 2 см (в общей инструкции 2024: левое 3, правое 1,5 см, уточните у преподавателя).</li>
+      <li>Не менее 5 источников: монографии и статьи, учебники не считаются. На каждый нужна ссылка в тексте, оформление по ГОСТ.</li>
+      <li>Титульный лист, оглавление, нумерация страниц внизу по центру.</li>
+      <li>Загрузить в личный кабинет до 06.12. Сдать можно один раз, исправить после загрузки нельзя.</li>
+      <li>Оценка из 100: введение 25, основная часть 25, заключение 25, литература 15, оглавление 5, оформление 5.</li>
+    </ul>
+  </details>
+
+  <div class="filters" role="group" aria-label="Фильтр">
+    <button type="button" data-f="all" aria-pressed="true">Все</button>
+    <button type="button" data-f="todo" aria-pressed="false">Осталось</button>
+    <button type="button" data-f="done" aria-pressed="false">Выполнено</button>
+  </div>
+
+  <main class="list" id="list"></main>
+</div>
+
+<script>
+var W = function (d, t, who) { return { k: 'w', title: 'Вебинар', when: d + ' · ' + t, note: who }; };
+var T = function (n, score) { return { k: 't', title: 'Тест ' + n, when: 'до 20.12', done: !!score, note: score ? 'Оценка: ' + score : '' }; };
+var R = function (n) { return { k: 'r', title: 'Рейтинговая работа (реферат)', when: 'до 06.12', note: 'Тема на выбор из ' + n + '. Тема пока не выбрана, работа не загружена' }; };
+var F = function () { return { k: 'f', title: 'Итоговое тестирование', when: '21.12 – 27.12', note: '' }; };
+
+var DATA = [
+  { n: 'Возрастная анатомия, физиология и гигиена', f: 'Зачёт с оценкой', t: 'Гордиенко О. Н.',
+    m: 'Учебные материалы, модули 1–4 (264 с.)',
+    items: [W('26.10', '15:40', 'Гордиенко О. Н.'), T(1), T(2), T(3), F()] },
+  { n: 'Иностранный язык в профессиональной деятельности', f: 'Контрольная работа', t: 'Ялышева А. Г.',
+    items: [W('20.10', '13:50', 'Ялышева А. Г.'), T(1, 95), F()] },
+  { n: 'Иностранный язык (второй)', f: 'Контрольная работа', t: 'Ялышева А. Г.',
+    items: [W('26.10', '12:45', 'Ялышева А. Г.'), T(1, 98), F()] },
+  { n: 'История России', f: 'Зачёт с оценкой', t: 'Григорян В. Д.',
+    m: 'Учебник «История России», 2026 (568 с.)',
+    items: [W('22.10', '16:35', 'Григорян В. Д.'), T(1), T(2), T(3), R(10), F()] },
+  { n: 'Медико-биологические основы здоровья', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+    items: [W('20.10', '10:55', 'Гусев А. В.'), T(1), T(2), R(47), F()] },
+  { n: 'Основы возрастной и педагогической психологии', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+    m: 'Рабочий учебник МУИВ, 2024 (57 с.)',
+    items: [T(1), F()] },
+  { n: 'Основы педагогики', f: 'Зачёт с оценкой', t: 'Блесткина О. В.',
+    items: [T(1), T(2), R(24), F()] },
+  { n: 'Основы психологии', f: 'Зачёт с оценкой', t: 'Александрова О. А.',
+    items: [T(1), T(2), R(35), F()] },
+  { n: 'Основы финансовой грамотности', f: 'Зачёт с оценкой', t: 'Гончарова Л. Н.',
+    m: 'Горяев, Чумаченко. «Финансовая грамота» (106 с.)',
+    items: [T(1), T(2), F()] },
+  { n: 'Русский (родной) язык и культура профессиональной коммуникации', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
+    items: [W('21.10', '10:00', 'Гарманова А. Ю.'), T(1), T(2), F()] },
+  { n: 'Русский язык и культура профессиональной коммуникации педагога', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
+    items: [W('21.10', '10:55', 'Гарманова А. Ю.'), T(1), T(2), F()] },
+  { n: 'Теоретические и методические основы физического воспитания и развития детей раннего и дошкольного возраста', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+    items: [W('27.10', '10:55', 'Ожерельева М. В.'), T(1), F()] },
+  { n: 'Физическая культура', f: 'Контрольная работа', t: 'Наташкин С. А.',
+    m: 'Лях, Зданевич. «Физическая культура», 10–11 кл. (239 с.)',
+    items: [T(1), F()] }
+];
+
+var KEY = 'semestr-checklist-v1', TSKEY = 'semestr-ts-v1', SKEY = 'semestr-sync-key';
+var state = {}, ts = {}, filter = 'all', syncKey = '', syncTimer = null;
+
+DATA.forEach(function (d, i) { d.items.forEach(function (it, j) { it.id = i + '-' + j; state[it.id] = !!it.done; ts[it.id] = 0; }); });
+try {
+  var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+  Object.keys(saved).forEach(function (k) { if (k in state) state[k] = saved[k]; });
+  var savedTs = JSON.parse(localStorage.getItem(TSKEY) || '{}');
+  Object.keys(savedTs).forEach(function (k) { if (k in ts) ts[k] = savedTs[k]; });
+} catch (e) {}
+try {
+  var q = new URLSearchParams(location.search);
+  if (q.get('k')) { localStorage.setItem(SKEY, q.get('k')); history.replaceState(null, '', location.pathname); }
+  syncKey = localStorage.getItem(SKEY) || '';
+} catch (e) {}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem(TSKEY, JSON.stringify(ts)); } catch (e) {}
+}
+
+function setSync(text) { var n = document.getElementById('sync'); if (n) n.textContent = text; }
+
+function sync() {
+  if (!syncKey) { setSync('Отметки хранятся только на этом устройстве'); return; }
+  if (!navigator.onLine) { setSync('Нет сети. Синхронизация пройдёт позже'); return; }
+  var items = {};
+  Object.keys(state).forEach(function (id) { if (ts[id] > 0) items[id] = [state[id], ts[id]]; });
+  fetch('api/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Key': syncKey },
+    body: JSON.stringify({ items: items })
+  }).then(function (r) {
+    if (r.status === 401) throw new Error('key');
+    if (!r.ok) throw new Error('http');
+    return r.json();
+  }).then(function (data) {
+    var changed = false;
+    Object.keys(data.items || {}).forEach(function (id) {
+      if (!(id in state)) return;
+      var v = data.items[id];
+      if (v[1] > ts[id]) { state[id] = !!v[0]; ts[id] = v[1]; changed = true; }
+    });
+    if (changed) { save(); render(); }
+    setSync('Синхронизировано в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
+  }).catch(function (e) {
+    setSync(e.message === 'key' ? 'Неверный ключ синхронизации' : 'Сервер недоступен. Отметки сохранены на устройстве');
+  });
+}
+function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 600); }
+
+function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+function render() {
+  var list = document.getElementById('list');
+  list.textContent = '';
+  var total = 0, done = 0, shown = 0;
+
+  DATA.forEach(function (d) {
+    var dDone = 0;
+    d.items.forEach(function (it) { total++; if (state[it.id]) { done++; dDone++; } });
+
+    var rows = d.items.filter(function (it) {
+      return filter === 'all' || (filter === 'done' ? state[it.id] : !state[it.id]);
+    });
+    if (!rows.length) return;
+    shown++;
+
+    var sec = el('section', 'disc' + (dDone === d.items.length ? ' complete' : ''));
+    var head = el('div', 'disc-head');
+    var tr = el('div', 'disc-title');
+    tr.appendChild(el('h2', null, d.n));
+    tr.appendChild(el('span', 'disc-count', dDone + '/' + d.items.length));
+    head.appendChild(tr);
+    head.appendChild(el('div', 'disc-meta', d.f + ' · ' + d.t));
+    var mat = el('div', 'disc-mat' + (d.m ? '' : ' none'));
+    mat.appendChild(el('b', null, 'Материалы'));
+    mat.appendChild(el('span', null, d.m || 'пока не добавлены'));
+    head.appendChild(mat);
+    sec.appendChild(head);
+
+    rows.forEach(function (it) {
+      var lab = el('label', 'row' + (state[it.id] ? ' done' : ''));
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = 'c-' + it.id;
+      cb.checked = !!state[it.id];
+      cb.addEventListener('change', function () { state[it.id] = cb.checked; ts[it.id] = Date.now(); save(); render(); scheduleSync(); });
+      var body = el('span', 'row-body');
+      body.appendChild(el('span', 'row-title', it.title));
+      var note = it.note;
+      if (it.k === 'r' && state[it.id]) note = '';
+      if (note) body.appendChild(el('span', 'row-note', note));
+      lab.appendChild(cb);
+      lab.appendChild(body);
+      lab.appendChild(el('span', 'chip ' + it.k, it.when));
+      sec.appendChild(lab);
+    });
+    list.appendChild(sec);
+  });
+
+  if (!shown) list.appendChild(el('p', 'empty', filter === 'done' ? 'Пока ничего не отмечено.' : 'Все задания выполнены.'));
+
+  var pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progNum').innerHTML = done + ' <span>из ' + total + ' выполнено</span>';
+  document.getElementById('progLeft').textContent = 'Осталось ' + (total - done);
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('bar').setAttribute('aria-valuenow', pct);
+}
+
+document.querySelectorAll('.filters button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    filter = b.getAttribute('data-f');
+    document.querySelectorAll('.filters button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    render();
+  });
+});
+render();
+sync();
+document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
+window.addEventListener('online', sync);
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+</script>
+
+</body>
+</html>
