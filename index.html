@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Чек-лист семестра</title>
-<meta name="description" content="Список заданий семестра: вебинары, тесты, рейтинговые работы и итоговое тестирование.">
+<meta name="description" content="Задания семестра: вебинары, тесты, рейтинговые работы и итоговое тестирование.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -13,270 +13,617 @@
 <meta name="apple-mobile-web-app-title" content="Семестр">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f3f5f8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1621" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fdeff4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1f1420" media="(prefers-color-scheme: dark)">
 <style>
-/* Layout: narrow single column; summary band with key dates, then one block per discipline with tickable rows. */
+/* Раскладка: узкая колонка как в приложении. Сверху шапка со статусом синхронизации,
+   снизу три вкладки: Главная (что сейчас важно), Предметы (все задания), Ещё (синхронизация, календарь, требования). */
 :root {
-  --bg: #f3f5f8;
+  --bg: #fdeff4;
   --surface: #ffffff;
-  --fg: #16202e;
-  --muted: #5d6a7c;
-  --line: #dde3ec;
-  --accent: #1f6f5c;
-  --accent-soft: #dcefe9;
-  --k-web: #2b5cab;
-  --k-web-bg: #e3ecfa;
-  --k-rate: #9a5a00;
-  --k-rate-bg: #fbeed4;
-  --k-final: #8a2f4f;
-  --k-final-bg: #f7e2ea;
-  --k-test: #46546a;
-  --k-test-bg: #e8ecf2;
+  --fg: #2d1f28;
+  --muted: #7a6571;
+  --line: #f1d7e2;
+  --accent: #b83b72;
+  --accent-soft: #fde3ee;
+  --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='%23f7b8d0' opacity='.55'%3E%3Ccircle cx='34' cy='24' r='7'/%3E%3Ccircle cx='46' cy='34' r='7'/%3E%3Ccircle cx='40' cy='47' r='7'/%3E%3Ccircle cx='26' cy='45' r='7'/%3E%3Ccircle cx='22' cy='31' r='7'/%3E%3Ccircle cx='108' cy='96' r='5'/%3E%3Ccircle cx='117' cy='103' r='5'/%3E%3Ccircle cx='113' cy='113' r='5'/%3E%3Ccircle cx='102' cy='112' r='5'/%3E%3Ccircle cx='99' cy='102' r='5'/%3E%3C/g%3E%3Cg fill='%23fff3c4' opacity='.9'%3E%3Ccircle cx='34' cy='36' r='4'/%3E%3Ccircle cx='108' cy='104' r='3'/%3E%3C/g%3E%3Cg fill='%23ffd6e5' opacity='.8'%3E%3Ccircle cx='96' cy='26' r='2.5'/%3E%3Ccircle cx='20' cy='108' r='2.5'/%3E%3Ccircle cx='130' cy='58' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  --on-accent: #ffffff;
+  --warn: #b3261e;
+  --k-w: #2b5cab;  --k-w-bg: #e3ecfa;
+  --k-t: #46546a;  --k-t-bg: #e8ecf2;
+  --k-r: #9a5a00;  --k-r-bg: #fbeed4;
+  --k-f: #8a2f4f;  --k-f-bg: #f7e2ea;
+  --bar-bg: rgba(255, 246, 250, 0.88);
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1621;
-    --surface: #17202e;
-    --fg: #e6ebf3;
-    --muted: #93a1b5;
-    --line: #2a3648;
-    --accent: #4fc1a3;
-    --accent-soft: #17382f;
-    --k-web: #8fb4f0;
-    --k-web-bg: #1c2b46;
-    --k-rate: #f0be6a;
-    --k-rate-bg: #3a2b10;
-    --k-final: #f0a1bd;
-    --k-final-bg: #3b1a29;
-    --k-test: #b4c0d2;
-    --k-test-bg: #243044;
+    --bg: #1f1420; --surface: #2b1c2c; --fg: #f4e8ef; --muted: #b9a0b0; --line: #43304a;
+    --accent: #f19ac0; --accent-soft: #432235; --on-accent: #2a0f1d; --warn: #ff8a80;
+    --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='%23f7b8d0' opacity='.13'%3E%3Ccircle cx='34' cy='24' r='7'/%3E%3Ccircle cx='46' cy='34' r='7'/%3E%3Ccircle cx='40' cy='47' r='7'/%3E%3Ccircle cx='26' cy='45' r='7'/%3E%3Ccircle cx='22' cy='31' r='7'/%3E%3Ccircle cx='108' cy='96' r='5'/%3E%3Ccircle cx='117' cy='103' r='5'/%3E%3Ccircle cx='113' cy='113' r='5'/%3E%3Ccircle cx='102' cy='112' r='5'/%3E%3Ccircle cx='99' cy='102' r='5'/%3E%3C/g%3E%3Cg fill='%23fff3c4' opacity='.18'%3E%3Ccircle cx='34' cy='36' r='4'/%3E%3Ccircle cx='108' cy='104' r='3'/%3E%3C/g%3E%3Cg fill='%23ffd6e5' opacity='.12'%3E%3Ccircle cx='96' cy='26' r='2.5'/%3E%3Ccircle cx='20' cy='108' r='2.5'/%3E%3Ccircle cx='130' cy='58' r='2'/%3E%3C/g%3E%3C/svg%3E");
+    --k-w: #8fb4f0; --k-w-bg: #1c2b46;
+    --k-t: #b4c0d2; --k-t-bg: #243044;
+    --k-r: #f0be6a; --k-r-bg: #3a2b10;
+    --k-f: #f0a1bd; --k-f-bg: #3b1a29;
+    --bar-bg: rgba(43, 28, 44, 0.9);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1621;
-  --surface: #17202e;
-  --fg: #e6ebf3;
-  --muted: #93a1b5;
-  --line: #2a3648;
-  --accent: #4fc1a3;
-  --accent-soft: #17382f;
-  --k-web: #8fb4f0;
-  --k-web-bg: #1c2b46;
-  --k-rate: #f0be6a;
-  --k-rate-bg: #3a2b10;
-  --k-final: #f0a1bd;
-  --k-final-bg: #3b1a29;
-  --k-test: #b4c0d2;
-  --k-test-bg: #243044;
+  --bg: #1f1420; --surface: #2b1c2c; --fg: #f4e8ef; --muted: #b9a0b0; --line: #43304a;
+  --accent: #f19ac0; --accent-soft: #432235; --on-accent: #2a0f1d; --warn: #ff8a80;
+  --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='%23f7b8d0' opacity='.13'%3E%3Ccircle cx='34' cy='24' r='7'/%3E%3Ccircle cx='46' cy='34' r='7'/%3E%3Ccircle cx='40' cy='47' r='7'/%3E%3Ccircle cx='26' cy='45' r='7'/%3E%3Ccircle cx='22' cy='31' r='7'/%3E%3Ccircle cx='108' cy='96' r='5'/%3E%3Ccircle cx='117' cy='103' r='5'/%3E%3Ccircle cx='113' cy='113' r='5'/%3E%3Ccircle cx='102' cy='112' r='5'/%3E%3Ccircle cx='99' cy='102' r='5'/%3E%3C/g%3E%3Cg fill='%23fff3c4' opacity='.18'%3E%3Ccircle cx='34' cy='36' r='4'/%3E%3Ccircle cx='108' cy='104' r='3'/%3E%3C/g%3E%3Cg fill='%23ffd6e5' opacity='.12'%3E%3Ccircle cx='96' cy='26' r='2.5'/%3E%3Ccircle cx='20' cy='108' r='2.5'/%3E%3Ccircle cx='130' cy='58' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  --k-w: #8fb4f0; --k-w-bg: #1c2b46;
+  --k-t: #b4c0d2; --k-t-bg: #243044;
+  --k-r: #f0be6a; --k-r-bg: #3a2b10;
+  --k-f: #f0a1bd; --k-f-bg: #3b1a29;
+  --bar-bg: rgba(43, 28, 44, 0.9);
   color-scheme: dark;
 }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; background: var(--bg) var(--pattern) repeat 0 0 / 150px 150px; }
 body {
-  background: var(--bg);
+  margin: 0;
+  background: transparent;
   color: var(--fg);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.45;
-  padding-top: calc(28px + env(safe-area-inset-top, 0px));
-  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-h1 { font-size: 28px; line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
-.sub { color: var(--muted); margin: 6px 0 0; }
-.sync { font-size: 13px; }
-html { -webkit-text-size-adjust: 100%; }
-button { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app { max-width: 720px; margin: 0 auto; }
 
-.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
-.prog-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.prog-num { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.prog-num span { color: var(--muted); font-weight: 400; font-size: 15px; }
-.bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
-.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; width: 0; transition: width .25s ease; }
-.dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
-.dates li { border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.dates b { font-family: var(--font-mono); font-weight: 500; font-size: 13px; }
-.dates span { font-size: 13px; }
-.dates .kw { background: var(--k-web-bg); color: var(--k-web); }
-.dates .kt { background: var(--k-test-bg); color: var(--k-test); }
-.dates .kr { background: var(--k-rate-bg); color: var(--k-rate); }
-.dates .kf { background: var(--k-final-bg); color: var(--k-final); }
+/* Шапка */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bar-bg); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); padding: 14px 0 10px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+.top-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.top h1 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 26px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+.pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.pill[data-st="ok"] .dot { background: var(--accent); }
+.pill[data-st="err"] .dot { background: var(--warn); }
+.pill[data-st="wait"] .dot { background: var(--k-r); }
 
-.req { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
-.req summary { cursor: pointer; font-weight: 600; }
-.req summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
-.req ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
-.sync-body { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.hint { margin: 0; font-size: 14px; color: var(--muted); }
-.code-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.code-row input { flex: 1 1 200px; min-width: 0; font: inherit; font-size: 16px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
-.code-row button { font: inherit; font-size: 14px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--surface); cursor: pointer; }
-.code-row button.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
-.code-row input:focus-visible, .code-row button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.filters { display: flex; gap: 8px; flex-wrap: wrap; }
-.filters button { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
-.filters button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.filters button:focus-visible, .row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Содержимое вкладок */
+main { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.tab { display: flex; flex-direction: column; gap: 18px; }
+.sec-title { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+.muted { color: var(--muted); }
 
-.list { display: flex; flex-direction: column; gap: 14px; }
-.disc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-.disc-head { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 3px; border-bottom: 1px solid var(--line); }
-.disc-title { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.disc-title h2 { font-size: 16px; line-height: 1.3; margin: 0; font-weight: 600; text-wrap: balance; min-width: 0; }
-.disc-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
-.disc-meta { color: var(--muted); font-size: 13px; }
-.disc-mat { font-size: 13px; margin-top: 4px; display: flex; gap: 8px; align-items: baseline; }
-.disc-mat b { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); flex: none; }
-.disc-mat span { min-width: 0; }
-.disc-mat.none b, .disc-mat.none span { color: var(--muted); }
-.disc.complete .disc-count { color: var(--accent); }
+/* Главная: сводка */
+.hero { display: flex; align-items: center; gap: 16px; padding: 16px; }
+.ring { position: relative; width: 84px; height: 84px; flex: none; }
+.ring svg { display: block; transform: rotate(-90deg); }
+.ring .track { stroke: var(--line); }
+.ring .fill { stroke: var(--accent); transition: stroke-dashoffset .3s ease; }
 
-.row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--line); cursor: pointer; }
-.disc-head + .row { border-top: 0; }
-.row input { appearance: none; -webkit-appearance: none; flex: none; width: 22px; height: 22px; margin: 0; border: 2px solid var(--muted); border-radius: 6px; background: transparent; cursor: pointer; display: grid; place-content: center; }
-.row input::after { content: ""; width: 10px; height: 6px; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.hero-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.hero-big { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hero-next { font-size: 14px; color: var(--muted); }
+
+.today { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 16px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; }
+.today b { font-size: 14px; }
+.today span { font-size: 15px; }
+
+.list-card { overflow: hidden; }
+.row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.list-card > .row:first-child, .disc-body > .row:first-child { border-top: 0; }
+.row input { appearance: none; -webkit-appearance: none; flex: none; width: 24px; height: 24px; margin: 0; border: 2px solid var(--muted); border-radius: 7px; background: transparent; cursor: pointer; display: grid; place-content: center; }
+.row input::after { content: ""; width: 11px; height: 6px; border-left: 2.5px solid var(--on-accent); border-bottom: 2.5px solid var(--on-accent); transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
 .row input:checked { background: var(--accent); border-color: var(--accent); }
 .row input:checked::after { opacity: 1; }
 .row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.row-title { font-weight: 500; }
-.row-note { font-size: 13px; color: var(--muted); }
-.row.done .row-title { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.row-title { font-weight: 500; overflow-wrap: anywhere; }
+.row-sub { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.row.done .row-title { color: var(--muted); text-decoration: line-through; }
+.row.done .chip { opacity: .55; }
 .chip { flex: none; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.chip.w { background: var(--k-web-bg); color: var(--k-web); }
-.chip.t { background: var(--k-test-bg); color: var(--k-test); }
-.chip.r { background: var(--k-rate-bg); color: var(--k-rate); }
-.chip.f { background: var(--k-final-bg); color: var(--k-final); }
-.row.done .chip { opacity: .6; }
-.empty { color: var(--muted); text-align: center; padding: 28px 0; }
-@media (max-width: 480px) {
-  .row { flex-wrap: wrap; }
-  .row-body { flex-basis: calc(100% - 40px); }
-  .chip { margin-left: 34px; }
-}
-@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+.chip.w { background: var(--k-w-bg); color: var(--k-w); }
+.chip.t { background: var(--k-t-bg); color: var(--k-t); }
+.chip.r { background: var(--k-r-bg); color: var(--k-r); }
+.chip.f { background: var(--k-f-bg); color: var(--k-f); }
+.link-btn { background: none; border: 0; padding: 10px 16px; color: var(--accent); font-weight: 600; cursor: pointer; text-align: left; width: 100%; border-top: 1px solid var(--line); }
+.empty { padding: 18px 16px; color: var(--muted); }
+
+.dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.dl { text-align: left; padding: 14px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; min-width: 0; }
+.dl-k { font-size: 13px; font-weight: 600; }
+.dl.w .dl-k { color: var(--k-w); } .dl.t .dl-k { color: var(--k-t); } .dl.r .dl-k { color: var(--k-r); } .dl.f .dl-k { color: var(--k-f); }
+.dl-n { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.dl-n span { font-size: 14px; font-weight: 400; color: var(--muted); }
+.dl-d { font-size: 13px; color: var(--muted); }
+.bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+
+/* Предметы */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.fchip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 7px 14px; font-size: 14px; cursor: pointer; }
+.fchip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.fchip.todo[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.disc { overflow: hidden; }
+.disc-head { width: 100%; background: none; border: 0; text-align: left; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+.disc-top { display: flex; align-items: center; gap: 12px; }
+.disc-name { flex: 1; min-width: 0; font-weight: 600; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }
+.disc-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.disc.complete .disc-count { color: var(--accent); }
+.chev { flex: none; width: 18px; height: 18px; transition: transform .2s ease; color: var(--muted); }
+.disc-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.disc-meta { font-size: 13px; color: var(--muted); }
+.disc-body { border-top: 1px solid var(--line); }
+.mat { padding: 10px 16px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.mat b { color: var(--accent); font-weight: 600; }
+
+/* Ещё */
+.panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.panel h2 { margin: 0; font-size: 17px; }
+.panel p { margin: 0; }
+.code-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.code-row input { flex: 1 1 200px; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+.btn { display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); cursor: pointer; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
+.steps b { color: var(--fg); font-weight: 600; }
+
+/* Нижние вкладки */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bar-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabbar-in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 max(8px, env(safe-area-inset-left, 0px)) 0 max(8px, env(safe-area-inset-right, 0px)); }
+.tb { background: none; border: 0; padding: 9px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; color: var(--muted); cursor: pointer; position: relative; }
+.tb svg { width: 24px; height: 24px; }
+.tb[aria-current="page"] { color: var(--accent); font-weight: 600; }
+.tb .badge { position: absolute; top: 4px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--k-f); color: var(--bg); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+
+/* Котики */
+.cat { display: block; flex: none; }
+.avatar { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; background: var(--accent-soft); }
+.avatar .cat { width: 42px; height: 46px; }
+.mini { display: inline-flex; vertical-align: -9px; margin-right: 8px; }
+.mini .cat { width: 30px; height: 33px; }
+.ring .cat { position: absolute; left: 50%; top: 50%; width: 46px; height: 51px; transform: translate(-50%, -50%); }
+.hero-big small { font-size: 14px; font-weight: 500; color: var(--accent); }
+.empty .cat { margin: 0 auto 6px; width: 56px; height: 62px; }
+.empty { text-align: center; }
+@media (prefers-reduced-motion: reduce) { .ring .fill, .chev { transition: none; } }
+@media (max-width: 480px) { .row { flex-wrap: wrap; } .row-body { flex-basis: calc(100% - 40px); } .chip { margin-left: 36px; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Чек-лист семестра</h1>
-    <p class="sub">13 дисциплин. Отмечайте задания, когда они выполнены.</p>
-    <p class="sub sync" id="sync"></p>
+<div class="app">
+  <header class="top">
+    <div class="top-in">
+      <h1 id="pageTitle">Главная</h1>
+      <button type="button" class="pill" id="pill" data-st="off" aria-label="Состояние синхронизации"><i class="dot"></i><span id="pillText">Только здесь</span></button>
+    </div>
   </header>
 
-  <section class="summary" aria-label="Прогресс и сроки">
-    <div class="prog-row">
-      <div class="prog-num" id="progNum"></div>
-      <div class="sub" style="margin:0" id="progLeft"></div>
-    </div>
-    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bar"><i id="barFill"></i></div>
-    <ul class="dates">
-      <li class="kw"><b>20.10 – 27.10</b><span>Вебинары</span></li>
-      <li class="kr"><b>до 06.12</b><span>Рейтинговые работы</span></li>
-      <li class="kt"><b>до 20.12</b><span>Тесты в разделах</span></li>
-      <li class="kf"><b>21.12 – 27.12</b><span>Итоговое тестирование</span></li>
-    </ul>
-  </section>
+  <main id="main">
+    <section class="tab" id="tab-home" aria-label="Главная"></section>
 
-  <details class="req">
-    <summary>Требования к рейтинговым работам</summary>
-    <ul>
-      <li>Реферат 10–12 страниц: введение 1 стр., основная часть 5–7 стр., заключение 1 стр.</li>
-      <li>Times New Roman 14, интервал 1,5, отступ 1,25 см, по ширине. Поля 2 см (в общей инструкции 2024: левое 3, правое 1,5 см, уточните у преподавателя).</li>
-      <li>Не менее 5 источников: монографии и статьи, учебники не считаются. На каждый нужна ссылка в тексте, оформление по ГОСТ.</li>
-      <li>Титульный лист, оглавление, нумерация страниц внизу по центру.</li>
-      <li>Загрузить в личный кабинет до 06.12. Сдать можно один раз, исправить после загрузки нельзя.</li>
-      <li>Оценка из 100: введение 25, основная часть 25, заключение 25, литература 15, оглавление 5, оформление 5.</li>
-    </ul>
-  </details>
-
-  <div class="filters" role="group" aria-label="Фильтр">
-    <button type="button" data-f="all" aria-pressed="true">Все</button>
-    <button type="button" data-f="todo" aria-pressed="false">Осталось</button>
-    <button type="button" data-f="done" aria-pressed="false">Выполнено</button>
-  </div>
-
-  <main class="list" id="list"></main>
-
-  <details class="req" id="syncBox">
-    <summary>Синхронизация между устройствами</summary>
-    <div class="sync-body">
-      <div id="codeNone">
-        <p class="hint">Вставьте код синхронизации, чтобы отметки совпадали на телефоне и компьютере.</p>
-        <div class="code-row">
-          <input id="codeInput" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Код синхронизации">
-          <button type="button" id="codeSave">Подключить</button>
-        </div>
+    <section class="tab" id="tab-subjects" aria-label="Предметы" hidden>
+      <div class="filters" role="group" aria-label="Тип задания" id="kindFilters">
+        <button type="button" class="fchip" data-kind="all" aria-pressed="true">Все</button>
+        <button type="button" class="fchip" data-kind="w" aria-pressed="false">Вебинары</button>
+        <button type="button" class="fchip" data-kind="t" aria-pressed="false">Тесты</button>
+        <button type="button" class="fchip" data-kind="r" aria-pressed="false">Работы</button>
+        <button type="button" class="fchip" data-kind="f" aria-pressed="false">Итоговые</button>
+        <button type="button" class="fchip todo" id="todoChip" aria-pressed="false">Только невыполненные</button>
       </div>
-      <div id="codeHave" hidden>
-        <p class="hint">Синхронизация включена. Этот код нужно вставить на других устройствах. Никому его не показывайте.</p>
-        <div class="code-row">
-          <input id="codeShown" type="text" readonly autocomplete="off" spellcheck="false" aria-label="Код синхронизации">
-          <button type="button" id="codeCopy">Скопировать</button>
-          <button type="button" id="codeOff" class="ghost">Отключить</button>
+      <div id="discList" style="display:flex;flex-direction:column;gap:12px"></div>
+    </section>
+
+    <section class="tab" id="tab-more" aria-label="Ещё" hidden>
+      <div class="card panel" id="syncPanel">
+        <h2>Синхронизация</h2>
+        <p class="muted" id="syncLine">Отметки хранятся только на этом устройстве</p>
+        <div id="codeNone">
+          <p class="muted" style="margin-bottom:8px">Вставьте код синхронизации, чтобы отметки совпадали на телефоне и компьютере.</p>
+          <div class="code-row">
+            <input id="codeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Код синхронизации" aria-label="Код синхронизации">
+            <button type="button" class="btn" id="codeSave">Подключить</button>
+          </div>
         </div>
+        <div id="codeHave" hidden>
+          <p class="muted" style="margin-bottom:8px">Этот код нужно вставить на других устройствах. Никому его не показывайте.</p>
+          <div class="code-row">
+            <input id="codeShown" type="text" readonly autocomplete="off" spellcheck="false" aria-label="Ваш код синхронизации">
+            <button type="button" class="btn" id="codeCopy">Скопировать</button>
+            <button type="button" class="btn ghost" id="codeOff">Отключить</button>
+          </div>
+        </div>
+        <p class="muted" id="codeMsg" role="status"></p>
       </div>
-      <p class="hint" id="codeMsg" role="status"></p>
-    </div>
-  </details>
+
+      <div class="card panel">
+        <h2>Напоминания</h2>
+        <p class="muted">Сайт не может присылать уведомления на iPhone сам. Надёжный способ — события календаря со звуковыми напоминаниями: Календарь напомнит о вебинарах и сроках, даже когда сайт закрыт.</p>
+        <a class="btn" href="semestr.ics" id="icsLink">Добавить напоминания в календарь</a>
+        <ol class="steps">
+          <li>Нажмите кнопку в <b>Safari</b> и выберите «Добавить все».</li>
+          <li>Вебинары: напоминание за день и за 30 минут.</li>
+          <li>Сроки (работы, тесты, итоговое): за 14, 7, 3 и 1 день и в день срока в 09:00.</li>
+          <li>Календарь не знает, что вы уже выполнили. Лишние события можно удалить.</li>
+        </ol>
+      </div>
+
+      <div class="card panel">
+        <h2>Требования к рейтинговым работам</h2>
+        <ol class="steps">
+          <li><b>Объём:</b> 10–12 страниц: введение 1 стр., основная часть 5–7 стр., заключение 1 стр.</li>
+          <li><b>Оформление:</b> Times New Roman 14, интервал 1,5, отступ 1,25 см, по ширине. Поля 2 см (в общей инструкции 2024: левое 3, правое 1,5 см, уточните у преподавателя).</li>
+          <li><b>Источники:</b> не менее 5, монографии и статьи, учебники не считаются. На каждый нужна ссылка в тексте, оформление по ГОСТ.</li>
+          <li><b>Состав:</b> титульный лист, оглавление, введение, основная часть, заключение, список источников.</li>
+          <li><b>Сдача:</b> загрузить в личный кабинет до 06.12. Один раз, исправить после загрузки нельзя.</li>
+          <li><b>Оценка из 100:</b> введение 25, основная часть 25, заключение 25, литература 15, оглавление 5, оформление 5.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
 </div>
 
-<script>
-var W = function (d, t, who) { return { k: 'w', title: 'Вебинар', when: d + ' · ' + t, note: who }; };
-var T = function (n, score) { return { k: 't', title: 'Тест ' + n, when: 'до 20.12', done: !!score, note: score ? 'Оценка: ' + score : '' }; };
-var R = function (n) { return { k: 'r', title: 'Рейтинговая работа (реферат)', when: 'до 06.12', note: 'Тема на выбор из ' + n + '. Тема пока не выбрана, работа не загружена' }; };
-var F = function () { return { k: 'f', title: 'Итоговое тестирование', when: '21.12 – 27.12', note: '' }; };
+<nav class="tabbar" aria-label="Разделы">
+  <div class="tabbar-in">
+    <button type="button" class="tb" data-go="home" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>
+      Главная
+    </button>
+    <button type="button" class="tb" data-go="subjects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>
+      Предметы
+    </button>
+    <button type="button" class="tb" data-go="more">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>
+      Ещё
+    </button>
+  </div>
+</nav>
 
-var DATA = [
-  { n: 'Возрастная анатомия, физиология и гигиена', f: 'Зачёт с оценкой', t: 'Гордиенко О. Н.',
+<script>
+'use strict';
+
+/* ---------- Данные ---------- */
+const YEAR = 2026, MS_DAY = 86400000;
+const mk = (d, m, hh = 0, mm = 0) => new Date(YEAR, m - 1, d, hh, mm);
+const W = (dm, tm, who) => { const [d, m] = dm.split('.').map(Number); const [h, mi] = tm.split(':').map(Number); return { k: 'w', title: 'Вебинар', at: mk(d, m, h, mi), note: who }; };
+const T = (n, score) => ({ k: 't', title: 'Тест ' + n, due: mk(20, 12), done: !!score, note: score ? 'Оценка: ' + score : '' });
+const R = (n) => ({ k: 'r', title: 'Рейтинговая работа (реферат)', due: mk(6, 12), note: 'Тема на выбор из ' + n });
+const F = () => ({ k: 'f', title: 'Итоговое тестирование', due: mk(21, 12), until: mk(27, 12), note: '' });
+
+/* Порядок заданий в каждом предмете нельзя менять: по нему сохраняются отметки. */
+const DATA = [
+  { n: 'Возрастная анатомия, физиология и гигиена', s: 'Возрастная анатомия', f: 'Зачёт с оценкой', t: 'Гордиенко О. Н.',
     m: 'Учебные материалы, модули 1–4 (264 с.)',
     items: [W('26.10', '15:40', 'Гордиенко О. Н.'), T(1), T(2), T(3), F()] },
-  { n: 'Иностранный язык в профессиональной деятельности', f: 'Контрольная работа', t: 'Ялышева А. Г.',
+  { n: 'Иностранный язык в профессиональной деятельности', s: 'Иностранный язык (проф.)', f: 'Контрольная работа', t: 'Ялышева А. Г.',
     items: [W('20.10', '13:50', 'Ялышева А. Г.'), T(1, 95), F()] },
-  { n: 'Иностранный язык (второй)', f: 'Контрольная работа', t: 'Ялышева А. Г.',
+  { n: 'Иностранный язык (второй)', s: 'Немецкий язык', f: 'Контрольная работа', t: 'Ялышева А. Г.',
     items: [W('26.10', '12:45', 'Ялышева А. Г.'), T(1, 98), F()] },
-  { n: 'История России', f: 'Зачёт с оценкой', t: 'Григорян В. Д.',
+  { n: 'История России', s: 'История России', f: 'Зачёт с оценкой', t: 'Григорян В. Д.',
     m: 'Учебник «История России», 2026 (568 с.)',
     items: [W('22.10', '16:35', 'Григорян В. Д.'), T(1), T(2), T(3), R(10), F()] },
-  { n: 'Медико-биологические основы здоровья', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+  { n: 'Медико-биологические основы здоровья', s: 'Медико-биол. основы здоровья', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
     items: [W('20.10', '10:55', 'Гусев А. В.'), T(1), T(2), R(47), F()] },
-  { n: 'Основы возрастной и педагогической психологии', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+  { n: 'Основы возрастной и педагогической психологии', s: 'Возрастная и пед. психология', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
     m: 'Рабочий учебник МУИВ, 2024 (57 с.)',
     items: [T(1), F()] },
-  { n: 'Основы педагогики', f: 'Зачёт с оценкой', t: 'Блесткина О. В.',
+  { n: 'Основы педагогики', s: 'Основы педагогики', f: 'Зачёт с оценкой', t: 'Блесткина О. В.',
     items: [T(1), T(2), R(24), F()] },
-  { n: 'Основы психологии', f: 'Зачёт с оценкой', t: 'Александрова О. А.',
+  { n: 'Основы психологии', s: 'Основы психологии', f: 'Зачёт с оценкой', t: 'Александрова О. А.',
     items: [T(1), T(2), R(35), F()] },
-  { n: 'Основы финансовой грамотности', f: 'Зачёт с оценкой', t: 'Гончарова Л. Н.',
+  { n: 'Основы финансовой грамотности', s: 'Финансовая грамотность', f: 'Зачёт с оценкой', t: 'Гончарова Л. Н.',
     m: 'Горяев, Чумаченко. «Финансовая грамота» (106 с.)',
     items: [T(1), T(2), F()] },
-  { n: 'Русский (родной) язык и культура профессиональной коммуникации', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
+  { n: 'Русский (родной) язык и культура профессиональной коммуникации', s: 'Русский (родной) язык', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
     items: [W('21.10', '10:00', 'Гарманова А. Ю.'), T(1), T(2), F()] },
-  { n: 'Русский язык и культура профессиональной коммуникации педагога', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
+  { n: 'Русский язык и культура профессиональной коммуникации педагога', s: 'Русский язык педагога', f: 'Зачёт с оценкой', t: 'Гарманова А. Ю.',
     items: [W('21.10', '10:55', 'Гарманова А. Ю.'), T(1), T(2), F()] },
-  { n: 'Теоретические и методические основы физического воспитания и развития детей раннего и дошкольного возраста', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
+  { n: 'Теоретические и методические основы физического воспитания и развития детей раннего и дошкольного возраста', s: 'Физвоспитание детей', f: 'Зачёт с оценкой', t: 'Ожерельева М. В.',
     items: [W('27.10', '10:55', 'Ожерельева М. В.'), T(1), F()] },
-  { n: 'Физическая культура', f: 'Контрольная работа', t: 'Наташкин С. А.',
+  { n: 'Физическая культура', s: 'Физическая культура', f: 'Контрольная работа', t: 'Наташкин С. А.',
     m: 'Лях, Зданевич. «Физическая культура», 10–11 кл. (239 с.)',
     items: [T(1), F()] }
 ];
+const KIND = {
+  w: { name: 'Вебинары', one: 'Вебинар' },
+  t: { name: 'Тесты', one: 'Тест' },
+  r: { name: 'Рейтинговые работы', one: 'Работа' },
+  f: { name: 'Итоговое тестирование', one: 'Итоговое' }
+};
 
-var KEY = 'semestr-checklist-v1', TSKEY = 'semestr-ts-v1', CKEY = 'semestr-sync-code';
-var state = {}, ts = {}, filter = 'all', syncTimer = null, syncing = false, cfg = null, code = '';
+/* ---------- Состояние ---------- */
+const KEY = 'semestr-checklist-v1', TSKEY = 'semestr-ts-v1', CKEY = 'semestr-sync-code', UIKEY = 'semestr-ui-v2';
+const state = {}, ts = {};
+const ALL = [];
+DATA.forEach((d, i) => d.items.forEach((it, j) => {
+  it.id = i + '-' + j; it.di = i;
+  state[it.id] = !!it.done; ts[it.id] = 0;
+  ALL.push(it);
+}));
+const ui = { tab: 'home', kind: 'all', todo: false, open: [] };
+let filter = 'all', syncTimer = null, syncing = false, cfg = null, code = '';
 
-DATA.forEach(function (d, i) { d.items.forEach(function (it, j) { it.id = i + '-' + j; state[it.id] = !!it.done; ts[it.id] = 0; }); });
 try {
-  var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
-  Object.keys(saved).forEach(function (k) { if (k in state) state[k] = saved[k]; });
-  var savedTs = JSON.parse(localStorage.getItem(TSKEY) || '{}');
-  Object.keys(savedTs).forEach(function (k) { if (k in ts) ts[k] = savedTs[k]; });
+  const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+  Object.keys(saved).forEach(k => { if (k in state) state[k] = saved[k]; });
+  const savedTs = JSON.parse(localStorage.getItem(TSKEY) || '{}');
+  Object.keys(savedTs).forEach(k => { if (k in ts) ts[k] = savedTs[k]; });
+  const u = JSON.parse(localStorage.getItem(UIKEY) || '{}');
+  if (['home', 'subjects', 'more'].indexOf(u.tab) >= 0) ui.tab = u.tab;
+  if (['all', 'w', 't', 'r', 'f'].indexOf(u.kind) >= 0) ui.kind = u.kind;
+  ui.todo = !!u.todo;
+  if (Array.isArray(u.open)) ui.open = u.open.filter(n => Number.isInteger(n));
 } catch (e) {}
 
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem(TSKEY, JSON.stringify(ts)); } catch (e) {}
+}
+function saveUi() { try { localStorage.setItem(UIKEY, JSON.stringify(ui)); } catch (e) {} }
+
+/* ---------- Даты ---------- */
+const pad = n => String(n).padStart(2, '0');
+const fmtDM = d => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
+const fmtT = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const dayDiff = d => Math.round((sod(d) - sod(new Date())) / MS_DAY);
+function plural(n, a, b, c) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return a;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return b;
+  return c;
+}
+function rel(d) {
+  const n = dayDiff(d);
+  if (n === 0) return 'сегодня';
+  if (n === 1) return 'завтра';
+  if (n === 2) return 'послезавтра';
+  if (n > 2) return 'через ' + n + ' ' + plural(n, 'день', 'дня', 'дней');
+  return Math.abs(n) + ' ' + plural(Math.abs(n), 'день', 'дня', 'дней') + ' назад';
+}
+function whenText(it) {
+  if (it.k === 'w') return fmtDM(it.at) + ' · ' + fmtT(it.at);
+  if (it.k === 'f') return fmtDM(it.due) + ' – ' + fmtDM(it.until);
+  return 'до ' + fmtDM(it.due);
+}
+const isOpen = it => !state[it.id];
+
+
+/* ---------- Котики ---------- */
+// Одна мордочка, у каждого предмета свой мех и свой аксессуар.
+const FUR = ['#fbe9d0', '#d9dde6', '#f6b978', '#fff7ef', '#e8c9a8', '#f3d3dc', '#cfe0f0', '#d9c8ea', '#f6d77d', '#fbe9d0', '#d9dde6', '#f6b978', '#e8c9a8', '#fff7ef'];
+const STRIPES = { 2: 1, 11: 1, 8: 1, 4: 1 };
+const ACC = [
+  /* 0 анатомия: красный крестик */ '<circle cx="52" cy="58" r="8" fill="#fff" stroke="#e58aa6"/><path d="M52 53v10M47 58h10" stroke="#e5546f" stroke-width="3" stroke-linecap="round"/>',
+  /* 1 англ.: облачко */ '<path d="M38 2h22a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H49l-4 4v-4h-7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" fill="#fff" stroke="#e8b3c8"/><text x="49" y="12" font-size="9" font-weight="700" fill="#b83b72" text-anchor="middle" font-family="sans-serif">Hi</text>',
+  /* 2 второй язык */ '<path d="M38 2h22a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H49l-4 4v-4h-7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" fill="#fff" stroke="#e8b3c8"/><text x="49" y="12" font-size="9" font-weight="700" fill="#2b5cab" text-anchor="middle" font-family="sans-serif">Hallo</text>',
+  /* 3 история: корона */ '<path d="M25 32l1-10 4 5 2-8 2 8 4-5 1 10z" fill="#f7cf55" stroke="#c99a1f" stroke-linejoin="round"/>',
+  /* 4 медико-био: листик и сердечко */ '<path d="M44 14C44 4 54 3 60 4c0 9-6 13-16 10z" fill="#8fd19e" stroke="#5fae75"/><path d="M45 13l9-6" stroke="#5fae75" stroke-linecap="round"/>',
+  /* 5 возрастная психология: сердечко */ '<path d="M52 18c-6-4-9-8-6-12 2-2 5-1 6 1 1-2 4-3 6-1 3 4 0 8-6 12z" fill="#f48fb1" stroke="#e0628f" stroke-linejoin="round"/>',
+  /* 6 педагогика: академическая шапочка */ '<path d="M32 21l15 6-15 6-15-6z" fill="#5a4a6a"/><path d="M24 31v5q8 4 16 0v-5" fill="#6b5a7c"/><path d="M47 27v8" stroke="#f7cf55" stroke-width="1.6" stroke-linecap="round"/><circle cx="47" cy="36" r="1.8" fill="#f7cf55"/>',
+  /* 7 психология: мысли */ '<circle cx="42" cy="22" r="2" fill="#fff" stroke="#e8b3c8"/><circle cx="47" cy="17" r="3" fill="#fff" stroke="#e8b3c8"/><ellipse cx="54" cy="9" rx="9" ry="7" fill="#fff" stroke="#e8b3c8"/><path d="M50 9c0-3 6-3 6 0s-4 2-4 0" fill="none" stroke="#b07ad8" stroke-linecap="round"/>',
+  /* 8 финансы: монетка */ '<circle cx="52" cy="58" r="8" fill="#f7cf55" stroke="#c99a1f"/><text x="52" y="62" font-size="11" font-weight="700" fill="#9a6d00" text-anchor="middle" font-family="sans-serif">₽</text>',
+  /* 9 русский: книжка */ '<rect x="41" y="51" width="19" height="13" rx="2" fill="#9ec5f2" stroke="#6a9ad4"/><path d="M50.5 51v13" stroke="#6a9ad4"/><path d="M44 56h4M53 56h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>',
+  /* 10 русский педагога: очки */ '<g fill="rgba(255,255,255,.35)" stroke="#6b4a5c" stroke-width="1.6"><circle cx="23" cy="47" r="6.2"/><circle cx="41" cy="47" r="6.2"/></g><path d="M29 47h6" stroke="#6b4a5c" stroke-width="1.6"/>',
+  /* 11 физвоспитание детей: мячик */ '<circle cx="52" cy="58" r="8" fill="#8ec5ff" stroke="#5a97d6"/><path d="M45 55q7 3 14 0M45 61q7-3 14 0" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M52 50v16" stroke="#fff" stroke-width="1.5"/>',
+  /* 12 физкультура: повязка */ '<path d="M13 40q19-9 38 0v4q-19-9-38 0z" fill="#f2657f"/><path d="M50 41l7 -3M50 43l7 3" stroke="#f2657f" stroke-width="2" stroke-linecap="round"/>',
+  /* 13 общий: бантик */ '<path d="M44 29l8-5v10z M44 29l-8-5v10z" fill="#f48fb1" stroke="#e0628f" stroke-linejoin="round" transform="translate(4 -2)"/><circle cx="48" cy="29" r="2.4" fill="#e0628f"/>'
+];
+function catSvg(i, happy) {
+  const fur = FUR[i % FUR.length];
+  const ear = '#f8b9cc', line = '#8a6575';
+  const eyes = happy
+    ? '<path d="M20.5 47q3.5-4 7 0M36.5 47q3.5-4 7 0" fill="none" stroke="#3b2a33" stroke-width="2" stroke-linecap="round"/>'
+    : '<ellipse cx="24" cy="47" rx="2.4" ry="2.9" fill="#3b2a33"/><ellipse cx="40" cy="47" rx="2.4" ry="2.9" fill="#3b2a33"/><circle cx="24.8" cy="46" r=".9" fill="#fff"/><circle cx="40.8" cy="46" r=".9" fill="#fff"/>';
+  const stripes = STRIPES[i] ? '<path d="M28 33.5q1 3 0 5M32 32.5v5M36 33.5q-1 3 0 5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.5" stroke-linecap="round"/>' : '';
+  const face = i === 10 ? '' : '';
+  return '<svg class="cat" viewBox="0 0 64 72" aria-hidden="true" focusable="false">' +
+    '<path d="M13 40L14 19l15 11z" fill="' + fur + '" stroke="' + line + '" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<path d="M51 40L50 19L35 30z" fill="' + fur + '" stroke="' + line + '" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<path d="M17 34l.6-10 8 6z M47 34l-.6-10-8 6z" fill="' + ear + '"/>' +
+    '<ellipse cx="32" cy="48" rx="21" ry="17.5" fill="' + fur + '" stroke="' + line + '" stroke-width="1.6"/>' +
+    stripes + eyes +
+    '<ellipse cx="17" cy="53" rx="4" ry="2.5" fill="#f9a8c4" opacity=".7"/><ellipse cx="47" cy="53" rx="4" ry="2.5" fill="#f9a8c4" opacity=".7"/>' +
+    '<path d="M30 51h4l-2 2.4z" fill="#ee7b9e"/><path d="M32 53.4v1.6M32 55q-2.4 2.4-4.6.6M32 55q2.4 2.4 4.6.6" fill="none" stroke="' + line + '" stroke-width="1.3" stroke-linecap="round"/>' +
+    '<path d="M11 51l-6-1.5M11 54l-6 1.5M53 51l6-1.5M53 54l6 1.5" stroke="' + line + '" stroke-width="1" stroke-linecap="round" opacity=".55"/>' +
+    ACC[i] + '</svg>';
+}
+function catEl(i, cls, happy) {
+  const s = document.createElement('span');
+  s.className = cls;
+  s.innerHTML = catSvg(i, happy);
+  return s;
+}
+
+/* ---------- Мелкие помощники DOM ---------- */
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+const $ = (s, r) => (r || document).querySelector(s);
+
+function rowEl(it, mode) {
+  const lab = el('label', 'row' + (state[it.id] ? ' done' : ''));
+  const cb = document.createElement('input');
+  cb.type = 'checkbox'; cb.id = 'c-' + it.id; cb.checked = !!state[it.id];
+  cb.addEventListener('change', () => { state[it.id] = cb.checked; ts[it.id] = Date.now(); save(); render(); scheduleSync(); });
+  const body = el('span', 'row-body');
+  let sub = '';
+  if (mode === 'home') {
+    const tt = el('span', 'row-title');
+    tt.appendChild(catEl(it.di, 'mini'));
+    tt.appendChild(document.createTextNode(DATA[it.di].s));
+    body.appendChild(tt);
+    sub = KIND[it.k].one + (it.note ? ' · ' + it.note : '') + (it.k === 'w' ? ' · ' + rel(it.at) : '');
+  } else {
+    body.appendChild(el('span', 'row-title', it.title));
+    sub = it.note;
+    if (it.k === 'w') sub = (it.note ? it.note + ' · ' : '') + rel(it.at);
+  }
+  if (sub) body.appendChild(el('span', 'row-sub', sub));
+  lab.appendChild(cb); lab.appendChild(body);
+  lab.appendChild(el('span', 'chip ' + it.k, whenText(it)));
+  return lab;
+}
+
+/* ---------- Главная ---------- */
+function renderHome() {
+  const root = $('#tab-home');
+  root.textContent = '';
+  const total = ALL.length, done = ALL.filter(x => state[x.id]).length, left = total - done;
+  const pct = Math.round(done / total * 100);
+  const now = new Date();
+  const webs = ALL.filter(x => x.k === 'w' && isOpen(x)).sort((a, b) => a.at - b.at);
+  const upcoming = webs.filter(x => x.at >= now);
+  const missed = webs.filter(x => x.at < now);
+
+  // Сводка
+  const hero = el('section', 'card hero');
+  const ring = el('div', 'ring');
+  const C = 2 * Math.PI * 34;
+  ring.innerHTML = '<svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">' +
+    '<circle class="track" cx="42" cy="42" r="34" fill="none" stroke-width="8"/>' +
+    '<circle class="fill" cx="42" cy="42" r="34" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct / 100)).toFixed(1) + '"/></svg>';
+  ring.appendChild(catEl(13, 'hero-cat', pct >= 50).firstChild);
+  const ht = el('div', 'hero-text');
+  const hb = el('div', 'hero-big', done + ' из ' + total + ' ');
+  hb.appendChild(el('small', null, pct + '%'));
+  ht.appendChild(hb);
+  ht.appendChild(el('div', 'muted', 'выполнено, осталось ' + left));
+  let next = '';
+  if (upcoming.length) next = 'Ближайший вебинар: ' + DATA[upcoming[0].di].s + ', ' + rel(upcoming[0].at) + ' в ' + fmtT(upcoming[0].at);
+  else if (left) next = 'Ближайший срок: рейтинговые работы до 06.12, ' + rel(mk(6, 12));
+  else next = 'Всё выполнено';
+  ht.appendChild(el('div', 'hero-next', next));
+  hero.appendChild(ring); hero.appendChild(ht);
+  root.appendChild(hero);
+
+  // Сегодня
+  const today = upcoming.filter(x => dayDiff(x.at) === 0);
+  if (today.length) {
+    const box = el('section', 'today');
+    box.appendChild(el('b', null, 'Сегодня'));
+    today.forEach(x => box.appendChild(el('span', null, fmtT(x.at) + ' · вебинар · ' + DATA[x.di].s)));
+    root.appendChild(box);
+  }
+
+  // Ближайшие вебинары
+  const sec1 = el('section');
+  sec1.appendChild(el('h2', 'sec-title', 'Ближайшие вебинары'));
+  const lc = el('div', 'card list-card');
+  if (upcoming.length) upcoming.slice(0, 6).forEach(x => lc.appendChild(rowEl(x, 'home')));
+  else { const em = el('div', 'empty'); em.appendChild(catEl(13, '', true).firstChild); em.appendChild(el('div', null, webs.length ? 'Будущих вебинаров нет.' : 'Все вебинары отмечены.')); lc.appendChild(em); }
+  if (missed.length) {
+    const b = el('button', 'link-btn', 'Прошли, но не отмечены: ' + missed.length);
+    b.type = 'button';
+    b.addEventListener('click', () => openSubjects('w', true));
+    lc.appendChild(b);
+  }
+  sec1.appendChild(lc);
+  root.appendChild(sec1);
+
+  // Сроки
+  const sec2 = el('section');
+  sec2.appendChild(el('h2', 'sec-title', 'Сроки'));
+  const grid = el('div', 'dl-grid');
+  [['r', mk(6, 12), 'до 06.12'], ['t', mk(20, 12), 'до 20.12'], ['f', mk(21, 12), 'с 21.12 по 27.12']].forEach(([k, due, label]) => {
+    const items = ALL.filter(x => x.k === k);
+    const o = items.filter(isOpen).length;
+    const b = el('button', 'card dl ' + k);
+    b.type = 'button';
+    b.appendChild(el('span', 'dl-k', KIND[k].name));
+    const n = el('span', 'dl-n'); n.textContent = o + ' '; const s = el('span', null, 'из ' + items.length + ' осталось'); n.appendChild(s);
+    b.appendChild(n);
+    const dd = dayDiff(due);
+    b.appendChild(el('span', 'dl-d', label + (k === 'f' && dd > 0 ? ', откроется ' + rel(due) : (dd >= 0 ? ', ' + rel(due) : ', срок прошёл'))));
+    const bar = el('span', 'bar'); const i = el('i'); i.style.width = (items.length ? Math.round((items.length - o) / items.length * 100) : 0) + '%'; bar.appendChild(i);
+    b.appendChild(bar);
+    b.addEventListener('click', () => openSubjects(k, true));
+    grid.appendChild(b);
+  });
+  sec2.appendChild(grid);
+  root.appendChild(sec2);
+}
+
+/* ---------- Предметы ---------- */
+function renderSubjects() {
+  document.querySelectorAll('#kindFilters .fchip[data-kind]').forEach(b => b.setAttribute('aria-pressed', b.dataset.kind === ui.kind ? 'true' : 'false'));
+  $('#todoChip').setAttribute('aria-pressed', ui.todo ? 'true' : 'false');
+  const list = $('#discList');
+  list.textContent = '';
+  let shown = 0;
+  DATA.forEach((d, i) => {
+    const dDone = d.items.filter(x => state[x.id]).length;
+    const rows = d.items.filter(x => (ui.kind === 'all' || x.k === ui.kind) && (!ui.todo || isOpen(x)));
+    if (!rows.length) return;
+    shown++;
+    const expanded = ui.kind !== 'all' || ui.todo || ui.open.indexOf(i) >= 0;
+    const card = el('section', 'card disc' + (dDone === d.items.length ? ' complete' : ''));
+    const head = el('button', 'disc-head');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    const top = el('span', 'disc-top');
+    top.appendChild(catEl(i, 'avatar', dDone === d.items.length));
+    top.appendChild(el('span', 'disc-name', d.n));
+    top.appendChild(el('span', 'disc-count', dDone + '/' + d.items.length));
+    const chev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chev.setAttribute('viewBox', '0 0 24 24'); chev.setAttribute('class', 'chev'); chev.setAttribute('aria-hidden', 'true');
+    chev.innerHTML = '<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    top.appendChild(chev);
+    head.appendChild(top);
+    head.appendChild(el('span', 'disc-meta', d.f + ' · ' + d.t));
+    const bar = el('span', 'bar'); const fill = el('i'); fill.style.width = Math.round(dDone / d.items.length * 100) + '%'; bar.appendChild(fill);
+    head.appendChild(bar);
+    head.addEventListener('click', () => {
+      if (ui.kind !== 'all' || ui.todo) return;
+      const p = ui.open.indexOf(i);
+      if (p >= 0) ui.open.splice(p, 1); else ui.open.push(i);
+      saveUi(); renderSubjects();
+    });
+    card.appendChild(head);
+    if (expanded) {
+      const body = el('div', 'disc-body');
+      if (d.m) { const m = el('div', 'mat'); const b = el('b', null, 'Материалы: '); m.appendChild(b); m.appendChild(document.createTextNode(d.m)); body.appendChild(m); }
+      rows.forEach(x => body.appendChild(rowEl(x, 'disc')));
+      card.appendChild(body);
+    }
+    list.appendChild(card);
+  });
+  if (!shown) { const em = el('div', 'card empty'); em.appendChild(catEl(13, '', true).firstChild); em.appendChild(el('div', null, ui.todo ? 'Здесь всё выполнено.' : 'Нет заданий.')); list.appendChild(em); }
+}
+
+/* ---------- Вкладки ---------- */
+const TITLES = { home: 'Главная', subjects: 'Предметы', more: 'Ещё' };
+function go(tab, keepScroll) {
+  ui.tab = tab; saveUi();
+  document.querySelectorAll('.tab').forEach(s => { s.hidden = s.id !== 'tab-' + tab; });
+  document.querySelectorAll('.tb').forEach(b => { if (b.dataset.go === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $('#pageTitle').textContent = TITLES[tab];
+  if (!keepScroll) window.scrollTo(0, 0);
+}
+function openSubjects(kind, todo) {
+  ui.kind = kind; ui.todo = !!todo; saveUi();
+  renderSubjects(); go('subjects');
+}
+document.querySelectorAll('.tb').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+document.querySelectorAll('#kindFilters .fchip[data-kind]').forEach(b => b.addEventListener('click', () => { ui.kind = b.dataset.kind; saveUi(); renderSubjects(); }));
+$('#todoChip').addEventListener('click', () => { ui.todo = !ui.todo; saveUi(); renderSubjects(); });
+$('#pill').addEventListener('click', () => { go('more'); setTimeout(() => { const i = $('#codeInput'); if (i && !i.closest('[hidden]')) i.focus(); }, 50); });
+
+function render() {
+  renderHome();
+  renderSubjects();
+  const miss = ALL.filter(x => x.k === 'w' && isOpen(x) && x.at < new Date()).length;
+  const old = $('.tb[data-go="subjects"] .badge');
+  if (old) old.remove();
+  if (miss) $('.tb[data-go="subjects"]').appendChild(el('span', 'badge', String(miss)));
+}
+
+/* ---------- Синхронизация (Firestore, REST) ---------- */
 // <sync-core>
 // Код синхронизации: ID_ПРОЕКТА~КЛЮЧ_API~СЕКРЕТНЫЙ_НОМЕР_СПИСКА
 function parseCode(c) {
@@ -328,160 +675,90 @@ function patchRequest(c, ids, local, localTs) {
 }
 // </sync-core>
 
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem(TSKEY, JSON.stringify(ts)); } catch (e) {}
+function setSync(long, short, st) {
+  $('#syncLine').textContent = long;
+  $('#pillText').textContent = short;
+  $('#pill').dataset.st = st;
 }
-
-function setSync(text) { var n = document.getElementById('sync'); if (n) n.textContent = text; }
-
 function loadCode(c) {
-  var parsed = parseCode(c);
+  const parsed = parseCode(c);
   if (!parsed) return false;
   cfg = parsed; code = c.trim();
   try { localStorage.setItem(CKEY, code); } catch (e) {}
   return true;
 }
 try {
-  var q = new URLSearchParams(location.search);
+  const q = new URLSearchParams(location.search);
   if (q.get('c')) { loadCode(q.get('c')); history.replaceState(null, '', location.pathname); }
   else { loadCode(localStorage.getItem(CKEY) || ''); }
 } catch (e) {}
 
 function sync() {
-  if (!cfg) { setSync('Отметки хранятся только на этом устройстве'); return; }
-  if (!navigator.onLine) { setSync('Нет сети. Синхронизация пройдёт позже'); return; }
+  if (!cfg) { setSync('Отметки хранятся только на этом устройстве', 'Только здесь', 'off'); return; }
+  if (!navigator.onLine) { setSync('Нет сети. Синхронизация пройдёт позже', 'Нет сети', 'wait'); return; }
   if (syncing) { scheduleSync(); return; }
   syncing = true;
-  var c = cfg;
-  fetch(docUrl(c) + '?key=' + encodeURIComponent(c.a)).then(function (r) {
+  const c = cfg;
+  fetch(docUrl(c) + '?key=' + encodeURIComponent(c.a)).then(r => {
     if (r.status === 404) return {};
     if (r.status === 403) throw new Error('rules');
     if (r.status === 400) throw new Error('key');
     if (!r.ok) throw new Error('http');
     return r.json();
-  }).then(function (doc) {
-    var plan = planMerge(state, ts, remoteItems(doc));
-    var pulled = Object.keys(plan.pull);
-    pulled.forEach(function (id) { state[id] = plan.pull[id][0]; ts[id] = plan.pull[id][1]; });
+  }).then(doc => {
+    const plan = planMerge(state, ts, remoteItems(doc));
+    const pulled = Object.keys(plan.pull);
+    pulled.forEach(id => { state[id] = plan.pull[id][0]; ts[id] = plan.pull[id][1]; });
     if (pulled.length) { save(); render(); }
     if (!plan.push.length) return;
-    var req = patchRequest(c, plan.push, state, ts);
-    return fetch(req.url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req.body) }).then(function (r) {
+    const req = patchRequest(c, plan.push, state, ts);
+    return fetch(req.url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req.body) }).then(r => {
       if (r.status === 403) throw new Error('rules');
       if (!r.ok) throw new Error('http');
     });
-  }).then(function () {
-    setSync('Синхронизировано в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
-  }).catch(function (e) {
-    setSync(e.message === 'rules' ? 'Сервер отклонил запрос. Проверьте правила Firestore и код' :
-            e.message === 'key' ? 'Неверный ключ API в коде синхронизации' :
-            'Сервер недоступен. Отметки сохранены на устройстве');
-  }).then(function () { syncing = false; });
+  }).then(() => {
+    const t = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    setSync('Синхронизировано в ' + t, 'Синхронизировано', 'ok');
+  }).catch(e => {
+    if (e.message === 'rules') setSync('Сервер отклонил запрос. Проверьте правила Firestore и код', 'Ошибка', 'err');
+    else if (e.message === 'key') setSync('Неверный ключ API в коде синхронизации', 'Ошибка', 'err');
+    else setSync('Сервер недоступен. Отметки сохранены на устройстве', 'Нет связи', 'err');
+  }).then(() => { syncing = false; });
 }
 function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 600); }
 
 function updateSyncUI() {
-  var input = document.getElementById('codeInput');
-  var have = document.getElementById('codeHave');
-  var none = document.getElementById('codeNone');
-  if (!input) return;
-  have.hidden = !cfg; none.hidden = !!cfg;
-  document.getElementById('codeShown').value = code;
+  $('#codeHave').hidden = !cfg;
+  $('#codeNone').hidden = !!cfg;
+  $('#codeShown').value = code;
 }
-
-function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
-
-function render() {
-  var list = document.getElementById('list');
-  list.textContent = '';
-  var total = 0, done = 0, shown = 0;
-
-  DATA.forEach(function (d) {
-    var dDone = 0;
-    d.items.forEach(function (it) { total++; if (state[it.id]) { done++; dDone++; } });
-
-    var rows = d.items.filter(function (it) {
-      return filter === 'all' || (filter === 'done' ? state[it.id] : !state[it.id]);
-    });
-    if (!rows.length) return;
-    shown++;
-
-    var sec = el('section', 'disc' + (dDone === d.items.length ? ' complete' : ''));
-    var head = el('div', 'disc-head');
-    var tr = el('div', 'disc-title');
-    tr.appendChild(el('h2', null, d.n));
-    tr.appendChild(el('span', 'disc-count', dDone + '/' + d.items.length));
-    head.appendChild(tr);
-    head.appendChild(el('div', 'disc-meta', d.f + ' · ' + d.t));
-    var mat = el('div', 'disc-mat' + (d.m ? '' : ' none'));
-    mat.appendChild(el('b', null, 'Материалы'));
-    mat.appendChild(el('span', null, d.m || 'пока не добавлены'));
-    head.appendChild(mat);
-    sec.appendChild(head);
-
-    rows.forEach(function (it) {
-      var lab = el('label', 'row' + (state[it.id] ? ' done' : ''));
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.id = 'c-' + it.id;
-      cb.checked = !!state[it.id];
-      cb.addEventListener('change', function () { state[it.id] = cb.checked; ts[it.id] = Date.now(); save(); render(); scheduleSync(); });
-      var body = el('span', 'row-body');
-      body.appendChild(el('span', 'row-title', it.title));
-      var note = it.note;
-      if (it.k === 'r' && state[it.id]) note = '';
-      if (note) body.appendChild(el('span', 'row-note', note));
-      lab.appendChild(cb);
-      lab.appendChild(body);
-      lab.appendChild(el('span', 'chip ' + it.k, it.when));
-      sec.appendChild(lab);
-    });
-    list.appendChild(sec);
-  });
-
-  if (!shown) list.appendChild(el('p', 'empty', filter === 'done' ? 'Пока ничего не отмечено.' : 'Все задания выполнены.'));
-
-  var pct = total ? Math.round(done / total * 100) : 0;
-  document.getElementById('progNum').innerHTML = done + ' <span>из ' + total + ' выполнено</span>';
-  document.getElementById('progLeft').textContent = 'Осталось ' + (total - done);
-  document.getElementById('barFill').style.width = pct + '%';
-  document.getElementById('bar').setAttribute('aria-valuenow', pct);
-}
-
-document.querySelectorAll('.filters button').forEach(function (b) {
-  b.addEventListener('click', function () {
-    filter = b.getAttribute('data-f');
-    document.querySelectorAll('.filters button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-    render();
-  });
-});
-render();
-updateSyncUI();
-sync();
-document.getElementById('codeSave').addEventListener('click', function () {
-  var v = document.getElementById('codeInput').value;
-  var msg = document.getElementById('codeMsg');
-  if (!loadCode(v)) { msg.textContent = 'Код не подходит. Проверьте, что вставили его целиком, без пробелов'; return; }
-  document.getElementById('codeInput').value = '';
-  msg.textContent = '';
+$('#codeSave').addEventListener('click', () => {
+  const msg = $('#codeMsg');
+  if (!loadCode($('#codeInput').value)) { msg.textContent = 'Код не подходит. Проверьте, что вставили его целиком, без пробелов'; return; }
+  $('#codeInput').value = ''; msg.textContent = '';
   updateSyncUI(); sync();
 });
-document.getElementById('codeCopy').addEventListener('click', function () {
-  var inp = document.getElementById('codeShown'); var msg = document.getElementById('codeMsg');
+$('#codeCopy').addEventListener('click', () => {
+  const inp = $('#codeShown'), msg = $('#codeMsg');
   inp.select();
-  var done = function () { msg.textContent = 'Код скопирован'; };
-  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(code).then(done).catch(function () { msg.textContent = 'Выделите код и скопируйте вручную'; }); }
-  else { msg.textContent = 'Выделите код и скопируйте вручную'; }
+  const fail = () => { msg.textContent = 'Выделите код и скопируйте вручную'; };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(() => { msg.textContent = 'Код скопирован'; }).catch(fail);
+  else fail();
 });
-document.getElementById('codeOff').addEventListener('click', function () {
+$('#codeOff').addEventListener('click', () => {
   cfg = null; code = '';
   try { localStorage.removeItem(CKEY); } catch (e) {}
-  updateSyncUI(); setSync('Отметки хранятся только на этом устройстве');
+  updateSyncUI(); sync();
 });
-document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
-window.addEventListener('online', sync);
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
-</script>
 
+/* ---------- Запуск ---------- */
+render();
+updateSyncUI();
+go(ui.tab, true);
+sync();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); sync(); } });
+window.addEventListener('online', sync);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
 </body>
 </html>

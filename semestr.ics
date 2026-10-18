@@ -1,0 +1,299 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Semestr checklist//RU//
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Семестр
+X-WR-TIMEZONE:Europe/Moscow
+BEGIN:VTIMEZONE
+TZID:Europe/Moscow
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0300
+TZNAME:MSK
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:web0@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261020T105500
+DTEND;TZID=Europe/Moscow:20261020T115500
+SUMMARY:Вебинар: Медико-биологические основ
+ ы здоровья
+DESCRIPTION:Преподаватель: Гусев А. В.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Медико-биологичес
+ кие основы здоровья
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Медико-биол
+ огические основы здоровья
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web1@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261020T135000
+DTEND;TZID=Europe/Moscow:20261020T145000
+SUMMARY:Вебинар: Иностранный язык в професс
+ иональной деятельности
+DESCRIPTION:Преподаватель: Ялышева А. Г.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Иностранный язык 
+ в профессиональной деятельности
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Иностранны
+ й язык в профессиональной деятельности
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web2@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261021T100000
+DTEND;TZID=Europe/Moscow:20261021T110000
+SUMMARY:Вебинар: Русский (родной) язык и куль
+ тура проф. коммуникации
+DESCRIPTION:Преподаватель: Гарманова А. Ю.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Русский (родной) я
+ зык и культура проф. коммуникации
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Русский (ро
+ дной) язык и культура проф. коммуникации
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web3@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261021T105500
+DTEND;TZID=Europe/Moscow:20261021T115500
+SUMMARY:Вебинар: Русский язык и культура про
+ ф. коммуникации педагога
+DESCRIPTION:Преподаватель: Гарманова А. Ю.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Русский язык и кул
+ ьтура проф. коммуникации педагога
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Русский язы
+ к и культура проф. коммуникации педагог
+ а
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web4@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261022T163500
+DTEND;TZID=Europe/Moscow:20261022T173500
+SUMMARY:Вебинар: История России
+DESCRIPTION:Преподаватель: Григорян В. Д.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: История России
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: История Рос
+ сии
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web5@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261026T124500
+DTEND;TZID=Europe/Moscow:20261026T134500
+SUMMARY:Вебинар: Иностранный язык (второй)
+DESCRIPTION:Преподаватель: Ялышева А. Г.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Иностранный язык (
+ второй)
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Иностранны
+ й язык (второй)
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web6@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261026T154000
+DTEND;TZID=Europe/Moscow:20261026T164000
+SUMMARY:Вебинар: Возрастная анатомия\, физио
+ логия и гигиена
+DESCRIPTION:Преподаватель: Гордиенко О. Н.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Возрастная анатом
+ ия\, физиология и гигиена
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Возрастная 
+ анатомия\, физиология и гигиена
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:web7@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;TZID=Europe/Moscow:20261027T105500
+DTEND;TZID=Europe/Moscow:20261027T115500
+SUMMARY:Вебинар: Физическое воспитание дете
+ й раннего и дошкольного возраста
+DESCRIPTION:Преподаватель: Ожерельева М. В.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Завтра вебинар: Физическое воспит
+ ание детей раннего и дошкольного возрас
+ та
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 30 минут вебинар: Физическое 
+ воспитание детей раннего и дошкольного 
+ возраста
+TRIGGER:-PT30M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:dl0@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;VALUE=DATE:20261206
+DTEND;VALUE=DATE:20261207
+SUMMARY:Рейтинговые работы: последний день 
+ сдачи
+DESCRIPTION:История России\, Медико-биологиче
+ ские основы здоровья\, Основы педагогик
+ и\, Основы психологии. Загрузить в личны
+ й кабинет\, исправить после загрузки нел
+ ьзя.
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Рейтинговые работы: последний ден
+ ь сдачи
+TRIGGER:-P13DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Рейтинговые работы: последний ден
+ ь сдачи
+TRIGGER:-P6DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Рейтинговые работы: последний ден
+ ь сдачи
+TRIGGER:-P2DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Рейтинговые работы: последний ден
+ ь сдачи
+TRIGGER:-PT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Рейтинговые работы: последний ден
+ ь сдачи
+TRIGGER:PT9H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:dl1@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;VALUE=DATE:20261220
+DTEND;VALUE=DATE:20261221
+SUMMARY:Тесты: последний день
+DESCRIPTION:Все тесты по дисциплинам семестра
+ .
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Тесты: последний день
+TRIGGER:-P13DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Тесты: последний день
+TRIGGER:-P6DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Тесты: последний день
+TRIGGER:-P2DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Тесты: последний день
+TRIGGER:-PT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Тесты: последний день
+TRIGGER:PT9H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:dl2@semestr
+DTSTAMP:20261018T000000Z
+DTSTART;VALUE=DATE:20261221
+DTEND;VALUE=DATE:20261228
+SUMMARY:Итоговое тестирование
+DESCRIPTION:Окно итогового тестирования: 21.12 
+ – 27.12.
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Итоговое тестирование
+TRIGGER:-P13DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Итоговое тестирование
+TRIGGER:-P6DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Итоговое тестирование
+TRIGGER:-P2DT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Итоговое тестирование
+TRIGGER:-PT15H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Итоговое тестирование
+TRIGGER:PT9H
+END:VALARM
+END:VEVENT
+END:VCALENDAR
