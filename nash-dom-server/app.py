@@ -267,6 +267,12 @@ def diff_notify(changed, who):
                     w = PEOPLE.get(it.get('who'), 'кто угодно')
                     d = (' до ' + it['when']) if it.get('when') else ''
                     notify('Новая покупка: %s%s (покупает: %s)' % (it.get('name', ''), d, w), skip=who)
+        if k == 'chores' and isinstance(old, list) and isinstance(new, list):
+            prev = {x.get('id'): x for x in old if isinstance(x, dict)}
+            for it in new:
+                o = prev.get(it.get('id')) if isinstance(it, dict) else None
+                if o and ((it.get('done') and not o.get('done')) or (it.get('last') and it.get('last') != o.get('last'))):
+                    notify('%s сделал(а): %s' % (PEOPLE.get(who, ''), it.get('name', '')), skip=who)
         hook = globals().get('diff_extra')
         if hook:
             hook(k, old, new, who)
