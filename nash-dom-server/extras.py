@@ -1,5 +1,5 @@
 """Этап 3: кино (TMDB + Кинопоиск), книги (Open Library), рецепты (TheMealDB), маркетплейс (коды ПВЗ)."""
-import hashlib, json, os, random, re, shutil, subprocess, time, urllib.parse, urllib.request
+import hashlib, json, os, random, re, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -290,22 +290,10 @@ def save_image(b):
     return '/photos/' + name, path
 
 
-def decode_codes(path):
-    """Считывает QR и штрих-коды программой zbarimg (пакет zbar-tools), если она установлена."""
-    exe = shutil.which('zbarimg')
-    if not exe:
-        return []
-    try:
-        out = subprocess.run([exe, '--quiet', '--raw', path], capture_output=True, text=True, timeout=15).stdout
-    except Exception:
-        return []
-    return [x.strip() for x in out.splitlines() if x.strip()]
-
-
 def bot_extra(m, who, reply):
     text = (m.get('text') or m.get('caption') or '').strip()
     now = datetime.now(A.TZ)
-    img, decoded = '', []
+    img = ''
     fid = ''
     if m.get('photo'):
         fid = max(m['photo'], key=lambda s: s.get('file_size', 0) or s.get('width', 0))['file_id']
@@ -314,12 +302,9 @@ def bot_extra(m, who, reply):
     if fid:
         url, path = save_image(tg_file(fid))
         if url:
-            img = url; decoded = decode_codes(path)
+            img = url
     p = parse_pickup(text, now) if text else {'code': '', 'shop': '', 'until': '', 'point': ''}
     code = p['code']
-    for d in decoded:  # цифровой код из штрих-кода или QR
-        if not code and re.fullmatch(r'[\dA-Za-z\-]{4,24}', d):
-            code = d
     if not code and not img:
         if text:
             return reply('Не нашёл в сообщении код получения. Пришлите скриншот или фото с QR-кодом, либо добавьте заказ вручную на сайте: Общее → Маркетплейс.')
@@ -330,7 +315,7 @@ def bot_extra(m, who, reply):
     if code:
         parts.append('код %s' % code)
     if img:
-        parts.append('картинка с кодом сохранена' + (', QR/штрих-код считан' if decoded else (', QR/штрих-код автоматически не считался, но на ПВЗ можно показать саму картинку' if shutil.which('zbarimg') else '')))
+        parts.append('картинка сохранена')
     if p['until']:
         parts.append('хранится до ' + p['until'])
     reply(', '.join(parts) + '. Забирает: %s. Время напоминания и подробности можно поправить на сайте.' % A.PEOPLE[who])
