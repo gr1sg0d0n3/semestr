@@ -134,12 +134,19 @@ const QA = {
 /* ====== данные: сохранить, загрузить, сбросить ====== */
 function openData() {
   const dlg = $('#dlg');
-  dlg.innerHTML = '<div class="df"><h2>Данные сайта</h2><p class="dn2">Сейчас всё сохраняется на этом устройстве, в браузере. Чтобы перенести записи на другой телефон, сохраните файл и загрузите его там. Позже телефоны будут синхронизироваться через ваш сервер сами.</p><div class="dcol"><button class="btn main" data-d="export">' + ic('plus', 18, 2) + 'Сохранить данные в файл</button><label class="btn filebtn">Загрузить данные из файла<input type="file" accept="application/json,.json" data-d="import" hidden></label><button class="btn danger" data-d="reset">Вернуть примеры и очистить мои записи</button></div><div class="da"><span class="sp"></span><button class="btn" data-d="close">Закрыть</button></div></div>';
+  dlg.innerHTML = '<div class="df"><h2>Данные сайта</h2><p class="dn2">Сейчас всё сохраняется на этом устройстве, в браузере. Чтобы перенести записи на другой телефон, сохраните файл и загрузите его там. Если сайт открыт на bestgirllovestudy.ru и вы вошли, телефоны синхронизируются сами.</p><div class="dcol">' + srvBlock() + '<button class="btn main" data-d="export">' + ic('plus', 18, 2) + 'Сохранить данные в файл</button><label class="btn filebtn">Загрузить данные из файла<input type="file" accept="application/json,.json" data-d="import" hidden></label><button class="btn danger" data-d="reset">Вернуть примеры и очистить мои записи</button></div><div class="da"><span class="sp"></span><button class="btn" data-d="close">Закрыть</button></div></div>';
   dlg.showModal();
+}
+function srvBlock() {
+  if (typeof NDS === 'undefined' || !/^https?:/.test(location.protocol)) return '';
+  const st = NDS.on ? 'Подключено к серверу как ' + PEOPLE[NDS.who] + '. Записи синхронизируются.' : NDS.state === 'wait' ? 'Нет связи с сервером. Пробуем снова…' : NDS.state === 'none' ? 'Сервер на этом адресе не найден. Откройте сайт по адресу bestgirllovestudy.ru.' : 'Нет входа на сервер.';
+  return '<p class="dn2"><b>Сервер.</b> ' + esc(st) + '</p><button class="btn" data-d="reconnect">Повторить подключение</button><button class="btn" data-d="relogin">Войти заново по коду</button>';
 }
 function dataClick(e) {
   const b = e.target.closest('[data-d]'); if (!b) return; const d = b.dataset.d, dlg = $('#dlg');
   if (d === 'close') dlg.close();
+  if (d === 'reconnect') { NDS.reconnect(); toast('Подключаемся…'); setTimeout(() => { dlg.close(); render({ keep: true }); }, 1200); }
+  if (d === 'relogin') { dlg.close(); NDS.relogin(); }
   if (d === 'export') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' })); a.download = 'nash-dom-' + isoD(today()) + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); }
   if (d === 'reset') { if (!b.dataset.arm) { b.dataset.arm = 1; b.textContent = 'Точно сбросить всё?'; return; } S = seed(); UI.trip = ''; persist(); dlg.close(); render(); toast('Примеры возвращены'); }
 }

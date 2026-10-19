@@ -4,7 +4,7 @@ IC.copy = 'M9 9h11v11H9z M5 15V4h11';
 
 /* ---------- сервер ---------- */
 async function srv(path) {
-  if (!NDS.on) return { error: 'Нет связи с сервером сайта. Откройте сайт по основному адресу (bestgirllovestudy.ru) и войдите по коду из Telegram.' };
+  if (!NDS.on) { NDS.reconnect(); return { error: 'Нет связи с сервером сайта. Проверьте, что сайт открыт по адресу bestgirllovestudy.ru. Если вход потерян: шестерёнка → «Войти заново по коду».' }; }
   try { const r = await NDS.api(path, { ms: 40000 }); return r.j || { error: 'Нет ответа сервера' }; } catch (e) { return { error: 'Нет связи с сервером' }; }
 }
 async function copyText(t) {

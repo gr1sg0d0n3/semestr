@@ -12,20 +12,26 @@ const NDS = {
     finally { clearTimeout(t); }
   },
   async init() {
-    if (!/^https?:/.test(location.protocol)) return;
-    this.load();
-    let r; try { r = await this.api('/api/ping', { ms: 8000 }); } catch (e) { if ((this.retry = (this.retry || 0) + 1) <= 4) setTimeout(() => this.init(), 3000 * this.retry); return; }
-    if (!r.j || r.j.ok !== 1) return; // сервера нет
-    if (r.j.who) { this.who = r.j.who; this.on = true; this.hook(); await this.sync(true); return; }
-    this.token = ''; this.save(); this.askCode();
+    if (!/^https?:/.test(location.protocol) || this.on || this.initing) return;
+    this.initing = true; this.load();
+    const again = (ms) => { this.initing = false; clearTimeout(this.rt); this.rt = setTimeout(() => this.init(), ms); };
+    let r; try { r = await this.api('/api/ping', { ms: 8000 }); } catch (e) { this.retry = (this.retry || 0) + 1; this.state = 'wait'; return again(Math.min(30000, 3000 * this.retry)); }
+    if (!r.j || r.j.ok !== 1) { this.state = 'none'; this.retry = (this.retry || 0) + 1; return this.retry <= 3 ? again(10000) : (this.initing = false); } // сервера нет или он ещё не поднялся
+    this.retry = 0;
+    if (r.j.who) { this.who = r.j.who; this.on = true; this.state = 'on'; this.initing = false; this.hook(); await this.sync(true); return; }
+    this.initing = false; this.state = 'login'; this.token = ''; this.save(); this.askCode();
   },
+  reconnect() { this.retry = 0; this.init(); },
+  relogin() { if (document.querySelector('.pairov')) return; this.on = false; this.token = ''; this.save(); this.askCode(); },
   hook() {
+    if (this.hooked) return; this.hooked = true;
     window.onNdSave = () => { clearTimeout(this.timer); this.timer = setTimeout(() => this.sync(), 700); };
     document.addEventListener('visibilitychange', () => { if (!document.hidden) this.sync(); });
     setInterval(() => { if (!document.hidden) this.sync(); }, 20000);
     window.addEventListener('online', () => this.sync());
   },
   askCode() {
+    if (document.querySelector('.pairov')) return;
     const o = document.createElement('div'); o.className = 'pairov';
     o.innerHTML = '<form class="glass pairc"><h2>Вход на сайт</h2><p>Напишите нашему боту в Telegram команду <b>/code</b> и введите шесть цифр, которые он пришлёт.</p><input name="c" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="Код из Telegram"><div class="pe" role="alert"></div><button class="btn main" type="submit">Войти</button></form>';
     document.body.appendChild(o);
