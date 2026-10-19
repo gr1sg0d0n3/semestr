@@ -14,7 +14,7 @@ const NDS = {
   async init() {
     if (!/^https?:/.test(location.protocol)) return;
     this.load();
-    let r; try { r = await this.api('/api/ping', { ms: 5000 }); } catch (e) { return; }
+    let r; try { r = await this.api('/api/ping', { ms: 8000 }); } catch (e) { if ((this.retry = (this.retry || 0) + 1) <= 4) setTimeout(() => this.init(), 3000 * this.retry); return; }
     if (!r.j || r.j.ok !== 1) return; // сервера нет
     if (r.j.who) { this.who = r.j.who; this.on = true; this.hook(); await this.sync(true); return; }
     this.token = ''; this.save(); this.askCode();

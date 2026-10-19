@@ -4,7 +4,7 @@ IC.copy = 'M9 9h11v11H9z M5 15V4h11';
 
 /* ---------- сервер ---------- */
 async function srv(path) {
-  if (!NDS.on) return { error: 'Эта функция работает только при подключении к серверу сайта.' };
+  if (!NDS.on) return { error: 'Нет связи с сервером сайта. Откройте сайт по основному адресу (bestgirllovestudy.ru) и войдите по коду из Telegram.' };
   try { const r = await NDS.api(path, { ms: 40000 }); return r.j || { error: 'Нет ответа сервера' }; } catch (e) { return { error: 'Нет связи с сервером' }; }
 }
 async function copyText(t) {
@@ -146,6 +146,11 @@ const QA3 = {
 const ACT3 = {
   copy(el) { copyText(el.dataset.v).then(() => toast('Код скопирован')); },
   imgView(el) { const d = $('#dlg'); d.innerHTML = '<div class="imgv"><img src="' + esc(el.dataset.src) + '" alt="Код получения"><p>Покажите на ПВЗ. Яркость экрана лучше выставить на максимум.</p><button type="button" class="btn" data-dact="cancel">Закрыть</button></div>'; d.onclick = (e) => { if (e.target.closest('[data-dact=cancel]') || e.target.tagName === 'IMG') d.close(); }; d.showModal(); },
+  async premRefresh() {
+    if (!NDS.on) { toast('Премьеры обновляются только при подключении к серверу сайта'); return; }
+    toast('Обновляю премьеры…');
+    try { const r = await NDS.api('/api/prem/refresh', { method: 'POST', body: '{}', ms: 90000 }); if (r.j && r.j.count) { await NDS.sync(); toast('Премьер добавлено: ' + r.j.count); } else toast((r.j && r.j.error) || 'Не получилось'); } catch (e) { toast('Нет связи с сервером'); }
+  },
   clearMarket() { S.market = S.market.filter((m) => !m.done); commit(); toast('Полученные убраны'); },
   recipeOpen(el) { UI.recipe = el.dataset.id || ''; commit(); },
   recipeShop(el) { const r = S.recipes.find((x) => x.id === el.dataset.id); if (r) recipeToShop(r); },

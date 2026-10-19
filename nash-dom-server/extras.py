@@ -1,5 +1,5 @@
 """Этап 3: кино (TMDB + Кинопоиск), книги (Open Library), рецепты (TheMealDB), маркетплейс (коды ПВЗ)."""
-import hashlib, http.client, json, os, random, re, socket, ssl, time, urllib.error, urllib.parse, urllib.request
+import hashlib, http.client, json, os, random, re, socket, ssl, threading, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -362,6 +362,91 @@ def place_random(cat):
     return {'name': t['name'], 'cat': label, 'desc': ' '.join(filter(None, [desc, ' · '.join(bits)]))[:600], 'addr': street, 'site': t.get('website') or t.get('contact:website') or '', 'lat': lat, 'lng': lng, 'poster': photo}
 
 
+
+# ---------- премьеры на месяц вперёд ----------
+MONTHS_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+
+
+def prem_build():
+    today = datetime.now(A.TZ).date(); end = today + timedelta(days=31)
+    iso = lambda d: d.strftime('%Y-%m-%d')
+    cinema, online = [], []
+    if KP():
+        seen = set()
+        d = today.replace(day=1)
+        while d <= end:
+            if (d.year, d.month) not in seen:
+                seen.add((d.year, d.month))
+                for x in kp('/v2.2/films/premieres', year=d.year, month=MONTHS_EN[d.month - 1]).get('items', []):
+                    pd = x.get('premiereRu') or ''
+                    if iso(today) <= pd <= iso(end) and (x.get('nameRu') or x.get('nameEn')):
+                        cinema.append({'id': 'pk%s' % x['kinopoiskId'], 'title': x.get('nameRu') or x.get('nameEn'), 'date': pd, 'where': 'k', 'place': 'кинотеатры', '_pu': x.get('posterUrlPreview') or x.get('posterUrl') or '', 'overview': ', '.join(g.get('genre', '') for g in (x.get('genres') or [])[:3]), '_pop': 0})
+            d = (d.replace(day=28) + timedelta(days=4)).replace(day=1)
+    elif TMDB():
+        r = tm('/discover/movie', region='RU', with_release_type='2|3', sort_by='popularity.desc', **{'release_date.gte': iso(today), 'release_date.lte': iso(end)})
+        for x in r.get('results', [])[:30]:
+            if x.get('poster_path'):
+                cinema.append({'id': 'pt%s' % x['id'], 'title': x.get('title') or '', 'date': x.get('release_date') or iso(today), 'where': 'k', 'place': 'кинотеатры', '_pp': x['poster_path'], 'overview': (x.get('overview') or '')[:200], '_pop': x.get('popularity', 0)})
+    if TMDB():
+        r = tm('/discover/movie', with_release_type='4', sort_by='popularity.desc', **{'release_date.gte': iso(today), 'release_date.lte': iso(end)})
+        for x in r.get('results', [])[:20]:
+            if x.get('poster_path'):
+                online.append({'id': 'po%s' % x['id'], 'title': x.get('title') or '', 'date': x.get('release_date') or iso(today), 'where': 'o', 'place': 'фильм онлайн', '_pp': x['poster_path'], 'overview': (x.get('overview') or '')[:200], '_pop': x.get('popularity', 0)})
+        r = tm('/discover/tv', sort_by='popularity.desc', **{'first_air_date.gte': iso(today), 'first_air_date.lte': iso(end)})
+        for x in r.get('results', [])[:20]:
+            if x.get('poster_path'):
+                online.append({'id': 'ps%s' % x['id'], 'title': x.get('name') or '', 'date': x.get('first_air_date') or iso(today), 'where': 'o', 'place': 'сериал', '_pp': x['poster_path'], 'overview': (x.get('overview') or '')[:200], '_pop': x.get('popularity', 0)})
+    if not (cinema or online):
+        raise Fail('Источники премьер пока ничего не вернули')
+    uniq = lambda L: list({x['id']: x for x in L}.values())
+    items = sorted(uniq(cinema), key=lambda x: x['date'])[:40] + sorted(uniq(online), key=lambda x: -x['_pop'])[:30]
+    urls = ['https://image.tmdb.org/t/p/w342' + i['_pp'] if i.get('_pp') else i.get('_pu', '') for i in items]
+    for i, ph in zip(items, POOL.map(cache_img, urls)):
+        i['poster'] = ph
+        for k in ('_pp', '_pu', '_pop'):
+            i.pop(k, None)
+        i['auto'] = True; i['want'] = False; i['cal'] = False
+    return items
+
+
+def prem_refresh():
+    new = prem_build()
+    with A.LOCK:
+        pass
+    cur = kv_get('prem', [])
+    todayiso = datetime.now(A.TZ).strftime('%Y-%m-%d')
+    out = [x for x in cur if not x.get('auto') and x.get('title') != 'Название фильма']
+    old = {x['id']: x for x in cur if x.get('auto')}
+    ids = set()
+    for n in new:
+        o = old.get(n['id'])
+        if o:
+            n['want'] = o.get('want', False); n['cal'] = o.get('cal', False)
+        ids.add(n['id']); out.append(n)
+    for oid, o in old.items():  # отмеченное «хотим» не пропадает до самой даты
+        if oid not in ids and o.get('want') and (o.get('date') or '') >= todayiso:
+            out.append(o)
+    kv_put('prem', out)
+    return len(new)
+
+
+def prem_tick(now):
+    month = now.strftime('%Y-%m')
+    if A.meta_get('prem_month') == month:
+        return
+    last = float(A.meta_get('prem_try', '0') or 0)
+    if time.time() - last < 3600:
+        return
+    A.meta_set('prem_try', str(time.time()))
+    def run():
+        try:
+            n = prem_refresh(); A.meta_set('prem_month', month)
+            A.notify('Обновил премьеры на месяц вперёд: %d шт. Они в Общее → Премьеры.' % n)
+        except Exception as e:
+            print('prem error', repr(e), flush=True)
+    threading.Thread(target=run, daemon=True).start()
+
+
 # ---------- маркетплейс: разбор сообщения ----------
 SHOPS = [('ozon', 'Ozon'), ('озон', 'Ozon'), ('wildberries', 'Wildberries'), ('вайлдберриз', 'Wildberries'), ('wb', 'Wildberries'), ('яндекс', 'Яндекс Маркет'), ('сдэк', 'СДЭК'), ('cdek', 'СДЭК'), ('5post', '5Post'), ('почта', 'Почта России'), ('avito', 'Авито'), ('авито', 'Авито'), ('мегамаркет', 'Мегамаркет'), ('lamoda', 'Lamoda')]
 MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
@@ -492,7 +577,8 @@ def notify_order(txt, who, img):
 
 
 def tick_extra(now):
-    """Напоминания по заказам из Маркетплейса в выбранные дату и время."""
+    """Напоминания по заказам из Маркетплейса и ежемесячное обновление премьер."""
+    prem_tick(now)
     sent = set(json.loads(A.meta_get('mk_sent', '[]')))
     changed = False
     for it in kv_get('market', []):
@@ -513,6 +599,13 @@ def tick_extra(now):
 
 def digest_extra(who, today):
     out = []
+    for p in kv_get('prem', []):
+        try:
+            n = (datetime.strptime(p['date'], '%Y-%m-%d').date() - today).days
+        except Exception:
+            continue
+        if p.get('want') and n in (0, 1):
+            out.append('Премьера %s: %s' % ('сегодня' if n == 0 else 'завтра', p.get('title', '')))
     for it in kv_get('market', []):
         if it.get('done') or it.get('who') not in (who, ''):
             continue
@@ -535,6 +628,14 @@ def http_extra(h, method, path, who):
     if not path.startswith('/api/') or path in ('/api/ping', '/api/state', '/api/pair', '/api/photo'):
         return False
     me = who if method == 'POST' else h.auth()
+    if method == 'POST' and path == '/api/prem/refresh':
+        try:
+            return h.send(200, {'count': prem_refresh()}) or True
+        except Fail as e:
+            return h.send(200, {'error': str(e)}) or True
+        except Exception as e:
+            print('prem error', repr(e), flush=True)
+            return h.send(200, {'error': 'Источник премьер сейчас недоступен'}) or True
     if not me:
         h.send(401, {'error': 'auth'}); return True
     q = {k: v[0] for k, v in urllib.parse.parse_qs(urllib.parse.urlparse(h.path).query).items()}
@@ -578,6 +679,7 @@ def check():
     t('Рецепты (TheMealDB)', lambda: jget('https://www.themealdb.com/api/json/v1/1/random.php'))
     t('Карта: поиск адреса', lambda: geo_search('Невский проспект'))
     t('Случайное место (OpenStreetMap)', lambda: overpass('[out:json][timeout:10];node(59.93,30.31,59.94,30.32)["amenity"];out 1;'))
+    t('Премьеры (Кинопоиск)', lambda: kp('/v2.2/films/premieres', year=datetime.now(A.TZ).year, month=MONTHS_EN[datetime.now(A.TZ).month - 1]))
     t('Перевод', lambda: (_ for _ in ()).throw(Fail('не работает')) if translate('apple') == 'apple' else None)
     return out
 

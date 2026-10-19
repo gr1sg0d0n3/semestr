@@ -544,3 +544,4 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 .li.pl{flex-direction:column;align-items:stretch}.plh{display:flex;align-items:center;gap:10px}.plh .t{flex:1;min-width:0}
 @media (max-width:899px){.map.lm{height:300px}}
 .acts{flex-wrap:wrap}
+.pmp{width:56px;height:80px;object-fit:cover;border-radius:10px;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.15)}
