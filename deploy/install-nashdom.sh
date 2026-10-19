@@ -1,7 +1,7 @@
 #!/bin/bash
 # Установка сайта «Наш дом» на сервер (Ubuntu, запускать от root). Можно запускать повторно.
 set -e
-DOM=bestgirllovestudy.ru
+DOM="${DOM:-home.bestgirllovestudy.ru}"
 WEB=/var/www/nashdom
 SRC=/opt/semestr-src
 
