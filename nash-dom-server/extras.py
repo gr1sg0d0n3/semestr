@@ -1,5 +1,5 @@
 """Этап 3: кино (TMDB + Кинопоиск), книги (Open Library), рецепты (TheMealDB), маркетплейс (коды ПВЗ)."""
-import hashlib, json, os, random, re, time, urllib.error, urllib.parse, urllib.request
+import hashlib, http.client, json, os, random, re, socket, ssl, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -9,11 +9,66 @@ KP = lambda: os.environ.get('KP_KEY', '').strip()
 POOL = ThreadPoolExecutor(6)
 
 
-def http(url, headers=None, data=None, timeout=12):
+def http_plain(url, headers=None, data=None, timeout=12):
     h = {'User-Agent': 'nashdom/1.0'}
     h.update(headers or {})
     with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=timeout) as r:
         return r.read()
+
+
+# DNS провайдера подменяет адреса TMDB на 127.0.0.1, поэтому их адреса узнаём через DNS-over-HTTPS и подключаемся по IP.
+DOH_HOSTS = {'api.themoviedb.org', 'api.tmdb.org', 'image.tmdb.org'}
+_dns = {}
+
+
+def doh(host):
+    ent = _dns.get(host)
+    if ent and ent[1] > time.time():
+        return ent[0]
+    for base in ('https://1.1.1.1/dns-query', 'https://8.8.8.8/resolve', 'https://9.9.9.9:5053/dns-query'):
+        try:
+            r = json.loads(http_plain(base + '?name=%s&type=A' % host, {'Accept': 'application/dns-json'}, timeout=6))
+            ips = [a['data'] for a in r.get('Answer', []) if a.get('type') == 1 and not a['data'].startswith(('127.', '0.'))]
+            if ips:
+                _dns[host] = (ips, time.time() + 3600)
+                return ips
+        except Exception:
+            continue
+    return []
+
+
+class IPConn(http.client.HTTPSConnection):
+    def __init__(self, host, ip, **kw):
+        super().__init__(host, **kw)
+        self._ip = ip
+
+    def connect(self):
+        sock = socket.create_connection((self._ip, self.port or 443), self.timeout)
+        self.sock = ssl.create_default_context().wrap_socket(sock, server_hostname=self.host)
+
+
+def http_ip(url, headers, data, timeout):
+    u = urllib.parse.urlparse(url)
+    for ip in doh(u.hostname):
+        try:
+            c = IPConn(u.hostname, ip, timeout=timeout)
+            h = {'User-Agent': 'nashdom/1.0'}; h.update(headers or {})
+            c.request('POST' if data else 'GET', u.path + ('?' + u.query if u.query else ''), body=data, headers=h)
+            r = c.getresponse(); body = r.read(); c.close()
+            if r.status >= 400:
+                raise urllib.error.HTTPError(url, r.status, r.reason, r.headers, None)
+            return body
+        except urllib.error.HTTPError:
+            raise
+        except Exception:
+            continue
+    raise Exception('нет доступа к %s (DNS-подмена, обход не сработал)' % u.hostname)
+
+
+def http(url, headers=None, data=None, timeout=12):
+    if urllib.parse.urlparse(url).hostname in DOH_HOSTS:
+        return http_ip(url, headers, data, timeout)
+    return http_plain(url, headers, data, timeout)
 
 
 def jget(url, headers=None, data=None):
