@@ -35,7 +35,7 @@ function initMap() {
   LM.on('popupopen', (e) => { const n = e.popup.getElement(); n.onclick = (ev) => { const b = ev.target.closest('[data-act]'); if (b && ACT[b.dataset.act]) { LM.closePopup(); ACT[b.dataset.act](b); } }; });
   LM.on('click', (e) => { if (MAPMODE) { MAPMODE = false; el.classList.remove('picking'); mapNew(e.latlng.lat, e.latlng.lng); } });
 }
-function afterRender() { initMap(); }
+function afterRender() { initMap(); if (typeof NDS !== 'undefined' && NDS.on && NDS.who === 'b' && /^#\/(his|home)?$|^#\/his\//.test(location.hash || '#/')) srvLoad(); }
 function mapNew(lat, lng, name, note) {
   const sc = SCH.places;
   openForm({ title: 'Новое место на карте', fields: sc.f(), values: Object.assign(sc.mk(), { name: name || '', note: note || '' }), save: 'Добавить', onSave(v) {

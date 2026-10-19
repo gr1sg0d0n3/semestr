@@ -57,6 +57,21 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOS
 systemctl daemon-reload; systemctl enable nashdom >/dev/null; systemctl restart nashdom
+# сборщик состояния сервера (читает системные данные, поэтому от root; наружу отдаёт только безопасную сводку)
+cat > /etc/systemd/system/nashdom-stats.service <<EOS
+[Unit]
+Description=Nash dom server stats
+After=network-online.target
+[Service]
+Environment=DOM=$DOM
+Environment=NASHDOM_STATS=/var/lib/nashdom/stats.json
+ExecStart=/usr/bin/python3 /opt/nashdom-server/collector.py
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
+EOS
+systemctl daemon-reload; systemctl enable nashdom-stats >/dev/null; systemctl restart nashdom-stats
 
 cat > /usr/local/bin/nashdom-update <<'EOS'
 #!/bin/bash
@@ -66,6 +81,7 @@ rsync -a --delete --exclude robots.txt /opt/semestr-src/nash-dom/ /var/www/nashd
 chown -R www-data:www-data /var/www/nashdom
 rsync -a --delete /opt/semestr-src/nash-dom-server/ /opt/nashdom-server/
 systemctl restart nashdom
+systemctl restart nashdom-stats 2>/dev/null || true
 echo "Сайт обновлён"
 EOS
 chmod +x /usr/local/bin/nashdom-update

@@ -579,6 +579,10 @@ def notify_order(txt, who, img):
 def tick_extra(now):
     """Напоминания по заказам из Маркетплейса и ежемесячное обновление премьер."""
     prem_tick(now)
+    try:
+        import monitor; monitor.A = A; monitor.tick(now)
+    except Exception as e:
+        print('monitor error', repr(e), flush=True)
     sent = set(json.loads(A.meta_get('mk_sent', '[]')))
     changed = False
     for it in kv_get('market', []):
@@ -640,6 +644,13 @@ def http_extra(h, method, path, who):
         h.send(401, {'error': 'auth'}); return True
     q = {k: v[0] for k, v in urllib.parse.parse_qs(urllib.parse.urlparse(h.path).query).items()}
     try:
+        if path in ('/api/server', '/api/server/alerts'):
+            if me != 'b':
+                return h.send(403, {'error': 'Только для Гриши'}) or True
+            import monitor; monitor.A = A
+            if path.endswith('alerts'):
+                monitor.set_alerts(q.get('on') == '1')
+            return h.send(200, monitor.api(q)) or True
         if path == '/api/status':
             return h.send(200, status()) or True
         if path == '/api/film/search':

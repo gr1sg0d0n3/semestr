@@ -32,7 +32,6 @@ function nextDate() {
   const a = S.dates.map((d) => ({ d, n: daysTo(d.yearly ? nextYearly(d.date) : d.date) })).filter((x) => x.n >= 0).sort((a, b) => a.n - b.n);
   return a[0] || null;
 }
-function serverState() { return navigator.onLine ? 'ok' : 'off'; }
 
 /* ====== раскладка ====== */
 function mbar(label, zone) {
@@ -98,7 +97,7 @@ function homePage() {
     '<aside class="rv sbl glass" aria-hidden="true">' + sideL + '</aside>' +
     '<div class="rv wl" aria-hidden="true"><div class="card glass"><div class="top"><div><div class="k">Ближайшее</div><div class="big">' + esc(hint) + '</div><div class="sub">' + esc(sub) + '</div></div>' + ring(sc.total ? sc.done / sc.total : 0, 84) + '</div></div><div class="mini"><div class="card glass"><div class="k">Хотелки</div><div class="big">' + wl + '</div></div><div class="card glass"><div class="k">Осталось пунктов</div><div class="big">' + (sc.total - sc.done) + '</div></div></div></div>' +
     '<aside class="rv sbr glass" aria-hidden="true">' + sideR + '</aside>' +
-    '<div class="rv wr" aria-hidden="true"><div class="card glass"><div class="k">Сервер</div><div class="big">' + (serverState() === 'ok' ? 'Всё работает' : 'Нет связи') + '</div><div class="sub">Сайт, синхронизация и VPN</div></div><div class="mini"><div class="card glass"><div class="k">Смотреть</div><div class="big">' + lw + '</div></div><div class="card glass"><div class="k">Играть</div><div class="big">' + lp + '</div></div></div></div>' +
+    '<div class="rv wr" aria-hidden="true"><div class="card glass"><div class="k">Сервер</div><div class="big">' + (serverState() === 'ok' ? 'Всё работает' : navigator.onLine ? 'Есть проблемы' : 'Нет связи') + '</div><div class="sub">Сайт, синхронизация и VPN</div></div><div class="mini"><div class="card glass"><div class="k">Смотреть</div><div class="big">' + lw + '</div></div><div class="card glass"><div class="k">Играть</div><div class="big">' + lp + '</div></div></div></div>' +
     '<div class="glow"></div><div class="hw" aria-hidden="true"><svg viewBox="0 0 100 90"><defs><clipPath id="hc1"><rect width="50" height="90"/></clipPath><clipPath id="hc2"><rect x="50" width="50" height="90"/></clipPath></defs></svg><svg viewBox="0 0 100 90"><path class="a" d="' + HEART + '" clip-path="url(#hc1)"/></svg><svg viewBox="0 0 100 90"><path class="b" d="' + HEART + '" clip-path="url(#hc2)"/></svg></div>' +
     '<div class="pills"><span class="pl glass">' + ndTxt + '</span><span class="pl glass">' + films + ' ' + plural(films, 'фильм', 'фильма', 'фильмов') + ' в очереди</span><span class="pl glass">' + pl + ' ' + plural(pl, 'место', 'места', 'мест') + ' посетили</span></div>' +
     '<div class="dockw">' + tnav('') + '</div><div class="hint">Наведите на нужную половину</div>' +
@@ -175,11 +174,4 @@ function listsPage(zone) {
 function hisPage() {
   const acts = btn('Выбрать фильм', 'pickFilm', { c: 'main', i: 'film' }) + btn('Сервер', 'go', { i: 'server', d: 'data-href="#/his/server"' }) + btn('Добавить', 'add', { i: 'plus', w: 2, d: 'data-k="lists"' }) + pinBtn('his');
   return hd('Его выбор', todayLong(), acts) + pinHeroes('his') + '<div class="grid">' + pinCards('his', 2) + '</div>';
-}
-function serverPage() {
-  const ok = serverState() === 'ok', tg = S.set.tg;
-  return hd('Сервер', 'сайт, синхронизация и VPN на одном сервере', btn('Проверить сейчас', 'recheck', { c: 'main', i: 'server' })) +
-    '<section class="hero glass in" style="--i:1"><div class="tx"><div class="k">Сейчас</div><div class="big">' + (ok ? 'Всё работает' : 'Нет связи') + '</div><div class="sub">Тестовый режим: данные хранятся на этом устройстве. Настоящие проверки сервера и синхронизация между телефонами появятся после установки на ваш сервер.</div></div><div class="ringb">' + ring(ok ? 1 : 0, 120, ok ? '#86c29a' : '#b8404b') + '<span>' + (ok ? '100%' : '0%') + '<small>доступность</small></span></div></section>' +
-    '<div class="grid"><section class="wd glass in" style="--i:2"><h3>' + ic('server', 20) + 'Сайт</h3><div class="ln">Адрес<span>' + esc(location.host || 'локально') + '</span></div></section><section class="wd glass in" style="--i:3"><h3>' + ic('server', 20) + 'Синхронизация</h3><div class="ln">Статус<span>после установки</span></div></section><section class="wd glass in" style="--i:4"><h3>' + ic('server', 20) + 'VPN</h3><div class="ln">Устройства<span>[N] подключено</span></div></section></div>' +
-    '<section class="wd glass in" style="--i:5"><h3>' + ic('bell', 20) + 'Сообщения в Telegram</h3><div class="ln">Сообщать, если что-то сломается<button class="swt ' + (tg ? 'on' : '') + '" role="switch" aria-checked="' + tg + '" aria-label="Сообщения в Telegram" data-act="tgSwitch"><i></i></button></div></section>';
 }
