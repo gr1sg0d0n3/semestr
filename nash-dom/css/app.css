@@ -548,8 +548,8 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 
 .chart{width:100%;height:70px;color:var(--his,#4a4d55);display:block;margin:6px 0}
 .ln .lk{min-width:84px}
-.bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:100%;border-radius:4px}
+.sbar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.sbar i{display:block;height:100%;border-radius:4px}
 .dot.off{background:#b9bcc4;box-shadow:0 0 0 5px rgba(185,188,196,.25)}
 .peer b{display:block;font-weight:600}
 .peer small{display:block;font-size:13px;color:var(--ink3)}
