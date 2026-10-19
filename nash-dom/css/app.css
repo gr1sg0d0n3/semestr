@@ -479,3 +479,22 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 .pairc input{font:inherit;font-size:28px;letter-spacing:.4em;text-align:center;padding:12px;border-radius:16px;border:1px solid rgba(0,0,0,.12)}
 .pairc .pe{color:#c0392b;min-height:1.2em;font-size:14px}
 .ph.up .phv::after{content:'Загружаю…';color:#8a8d95}
+
+/* этап 2 */
+.notes2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.notef{display:flex;flex-direction:column;gap:8px}.notef label{font-size:14px;color:#6d6a72}
+.notef textarea{font:inherit;border-radius:16px;border:1px solid rgba(0,0,0,.12);padding:12px;resize:vertical;background:rgba(255,255,255,.7)}
+.nh{padding:12px 0;border-top:1px solid rgba(0,0,0,.07)}.nh b{display:block;margin-bottom:4px}
+.nw{margin:2px 0;line-height:1.4}.nw span{display:inline-block;min-width:76px;font-size:13px;color:#8a8d95}.nw.a span{color:#a0455f}
+.ucs{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:6px 0}
+.uc{min-width:96px;text-align:center;padding:14px 18px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.05)}
+.uc b{display:block;font-size:44px;line-height:1.05;color:#8a1f46;font-weight:500}.uc span{font-size:14px;color:#6d6a72}
+.utot{text-align:center;color:#6d6a72;margin-top:6px}
+.srch{display:flex;flex-direction:column;gap:12px;width:min(520px,calc(100vw - 72px))}.sr .btn{flex:none}
+.sr{display:flex;align-items:center;gap:8px}.sr .si{color:#8a8d95;display:flex}
+.sr input{flex:1;font:inherit;font-size:17px;border:0;outline:0;background:transparent;padding:10px 4px}
+.sres{max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.sh{display:flex;justify-content:space-between;gap:12px;padding:12px 10px;border-radius:14px;text-decoration:none;color:inherit}
+.sh:hover,.sh:focus-visible{background:rgba(138,31,70,.08)}.sh span{font-size:13px;color:#8a8d95;white-space:nowrap}
+@media (max-width:899px){.notes2{grid-template-columns:1fr}}
+.sr input{min-width:0}.srch .sr{min-width:0}

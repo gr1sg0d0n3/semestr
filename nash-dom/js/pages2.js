@@ -124,10 +124,3 @@ function buysPage() {
     '<section class="glass box in" style="--i:1">' + tabs2('buyTab', f, tabs) + '<div style="margin-top:10px">' + (rows || empty(f === 'done' ? 'Пока ничего не куплено.' : 'Покупать нечего.')) + '</div>' + qaForm('buys', 'Что нужно купить') +
     '<div class="acts" style="margin-top:12px">' + btn('Убрать купленное', 'clearBuys', { c: 'sm' }) + '</div></section>';
 }
-function choresPage() {
-  const A = S.chores.filter((c) => c.who === 'a').length, B = S.chores.length - A, tot = Math.max(1, S.chores.length);
-  const rows = S.chores.map((c) => '<div class="li ' + (c.done ? 'dn' : '') + '">' + ckb('chores', c.id, c.done) + '<div class="t">' + esc(c.name) + (c.freq ? '<small>' + esc(c.freq) + '</small>' : '') + '</div><button class="who2 ' + c.who + '" data-act="swapWho" data-id="' + c.id + '" aria-label="Передать дело">' + PEOPLE[c.who] + '</button>' + pen('chores', c.id) + '</div>').join('');
-  return th('Дела по дому', 'Что нужно сделать и на ком оно сегодня. Нажмите на имя, чтобы передать дело.') +
-    '<section class="glass box in" style="--i:1"><h2>Баланс недели</h2><div class="bal2"><i class="a" style="width:' + Math.round(A / tot * 100) + '%"></i><i class="b" style="width:' + Math.round(B / tot * 100) + '%"></i></div><div class="balr"><span>Кристина: ' + A + '</span><span>Гриша: ' + B + '</span></div></section>' +
-    '<section class="glass box in" style="--i:2;margin-top:18px">' + (rows || empty('Дел нет.')) + qaForm('chores', 'Новое дело') + '<div class="acts" style="margin-top:12px">' + btn('Новая неделя: снять отметки', 'resetChores', { c: 'sm' }) + '</div></section>';
-}

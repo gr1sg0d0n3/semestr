@@ -2,6 +2,7 @@
 const NDS = {
   on: false, who: '', token: '', snap: {}, ts: {}, busy: false, again: false, quiet: false, timer: 0,
   SKIP: { v: 1, set: 1 },
+  skip(k) { return !!this.SKIP[k] || (/^p_[ab]_/.test(k) && k[2] !== this.who); },
   load() { try { const o = JSON.parse(localStorage.getItem('nashdom.sync') || '{}'); this.token = o.token || ''; this.snap = o.snap || {}; this.ts = o.ts || {}; } catch (e) { /* пусто */ } },
   save() { try { localStorage.setItem('nashdom.sync', JSON.stringify({ token: this.token, snap: this.snap, ts: this.ts })); } catch (e) { /* память полна */ } },
   async api(path, opt) {
@@ -47,7 +48,7 @@ const NDS = {
     try {
       const send = {}, sentSnap = {};
       for (const k of Object.keys(S)) {
-        if (this.SKIP[k]) continue;
+        if (this.skip(k)) continue;
         const j = JSON.stringify(S[k]);
         if (this.snap[k] !== j) { this.ts[k] = (first && this.snap[k] === undefined) ? 0 : Date.now(); send[k] = { v: S[k], ts: this.ts[k] }; sentSnap[k] = j; }
       }
@@ -57,7 +58,7 @@ const NDS = {
       Object.assign(this.snap, sentSnap);
       const srv = r.j.keys; let changed = false;
       for (const k of Object.keys(srv)) {
-        if (this.SKIP[k]) continue;
+        if (this.skip(k)) continue;
         const sj = JSON.stringify(srv[k].v);
         if (srv[k].ts > (this.ts[k] || 0) || (first && this.snap[k] === undefined)) {
           if (JSON.stringify(S[k]) !== sj) { S[k] = srv[k].v; changed = true; }

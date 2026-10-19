@@ -4,21 +4,14 @@
 import hashlib, json, os, re, secrets, sqlite3, threading, time, urllib.request, urllib.parse
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from datetime import timezone
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    ZoneInfo = None
+from zoneinfo import ZoneInfo
 
 DATA = os.environ.get('NASHDOM_DATA', '/var/lib/nashdom')
-PORT = int(os.environ.get('NASHDOM_PORT', '38787'))
+PORT = int(os.environ.get('NASHDOM_PORT', '8787'))
 TOKEN = os.environ.get('TG_TOKEN', '')
 SECRET = os.environ.get('SETUP_SECRET', '')
 DEV = os.environ.get('NASHDOM_DEV') == '1'
-try:
-    TZ = ZoneInfo(os.environ.get('NASHDOM_TZ', 'Europe/Moscow'))
-except Exception:  # нет базы часовых поясов: Москва без перехода на летнее время
-    TZ = timezone(timedelta(hours=3))
+TZ = ZoneInfo(os.environ.get('NASHDOM_TZ', 'Europe/Moscow'))
 PEOPLE = {'a': 'Кристина', 'b': 'Гриша'}
 PHOTOS = os.path.join(DATA, 'photos')
 os.makedirs(PHOTOS, exist_ok=True)
@@ -142,9 +135,17 @@ def bot_loop():
 
 
 # ---------- состояние ----------
-def get_state():
+PRIV_RE = re.compile(r'^p_([ab])_')
+
+
+def visible(k, who):
+    m = PRIV_RE.match(k)
+    return not m or m.group(1) == who  # ключи p_a_* видит только Кристина, p_b_* только Гриша
+
+
+def get_state(who=None):
     c = db(); rows = c.execute('SELECT k, v, ts FROM kv').fetchall(); c.close()
-    return {r['k']: {'v': json.loads(r['v']), 'ts': r['ts']} for r in rows}
+    return {r['k']: {'v': json.loads(r['v']), 'ts': r['ts']} for r in rows if who is None or visible(r['k'], who)}
 
 
 def merge_state(inc, who):
@@ -153,7 +154,7 @@ def merge_state(inc, who):
         c = db()
         old = {r['k']: (r['v'], r['ts']) for r in c.execute('SELECT k, v, ts FROM kv')}
         for k, o in inc.items():
-            if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', k) or not isinstance(o, dict) or 'v' not in o:
+            if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', k) or not isinstance(o, dict) or 'v' not in o or not visible(k, who):
                 continue
             ts = int(o.get('ts') or 0)
             if k in old and old[k][1] >= ts:
@@ -168,7 +169,7 @@ def merge_state(inc, who):
         except Exception as e:
             print('diff error', e, flush=True)
         gc_photos()
-    return get_state()
+    return get_state(who)
 
 
 def diff_notify(changed, who):
@@ -248,7 +249,7 @@ class H(BaseHTTPRequestHandler):
             who = self.auth()
             if not who:
                 return self.send(401, {'error': 'auth'})
-            return self.send(200, {'keys': get_state(), 'who': who})
+            return self.send(200, {'keys': get_state(who), 'who': who})
         if DEV and path == '/api/dev/code':
             q = urllib.parse.parse_qs(p.query)
             return self.send(200, {'code': new_code(q.get('who', ['b'])[0], 'pair')})
@@ -330,6 +331,9 @@ def digest(now):
                 continue
             if b.get('who') in (who, '') and datetime.strptime(b['when'], '%Y-%m-%d').date() <= today:
                 lines.append('Купить: %s' % b['name'])
+        for ch in (st.get('chores', {}).get('v') or []):
+            if ch.get('who') == who and not ch.get('done') and ch.get('last') != today.isoformat() and (not ch.get('when') or ch['when'] <= today.isoformat()) and ch.get('when'):
+                lines.append('Дело: %s' % ch['name'])
         for d in (st.get('dates', {}).get('v') or []):
             try:
                 dt = datetime.strptime(d['date'], '%Y-%m-%d').date()

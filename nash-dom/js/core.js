@@ -147,6 +147,13 @@ function migrate() {
     const d = (n) => { const t = today(); t.setDate(t.getDate() + n); return isoD(t); };
     S.buys = [['Корм для кота', 1, 'b'], ['Подарок для мамы', 5, 'a'], ['Лампочки в коридор', 3, '']].map((x) => ({ id: uid(), name: x[0], when: d(x[1]), who: x[2], note: '', done: false }));
   }
+  if (!S.notes) S.notes = {};
+  if (!S.us) S.us = { since: '' };
+  if (!S.p_a_gifts) S.p_a_gifts = [];
+  if (!S.p_b_gifts) S.p_b_gifts = [];
+  S.chores.forEach((c) => {
+    if (c.rep === undefined) { const f = String(c.freq || '').toLowerCase(); c.rep = /кажд\w* день|ежедневно/.test(f) ? 'day' : /нед/.test(f) ? 'week' : /месяц/.test(f) ? 'month' : ''; c.when = c.when || ''; c.last = ''; c.prev = ''; }
+  });
   if (!S.migBuys) { S.migBuys = 1; const i = S.pins.tog.indexOf('shop'); if (i >= 0 && !S.pins.tog.includes('buys')) S.pins.tog[i] = 'buys'; }
   if (!S.pins.his.includes('hwishes') && !S.migHw) { S.pins.his.splice(1, 0, 'hwishes'); S.migHw = 1; }
 }

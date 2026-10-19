@@ -37,7 +37,7 @@ function serverState() { return navigator.onLine ? 'ok' : 'off'; }
 /* ====== раскладка ====== */
 function mbar(label, zone) {
   const menu = zone === 'her' || zone === 'his' ? '<button class="mbtn ' + (zone === 'his' ? 'r' : 'l') + '" data-act="drawer" aria-label="Меню раздела">' + ic('menu', 22) + '</button>' : '';
-  return '<header class="mbar"><div class="mb-l">' + (zone === 'her' ? menu : '') + '<a class="brand" href="#/home"><svg viewBox="0 0 100 90" width="17" aria-hidden="true"><defs><clipPath id="bl"><rect width="50" height="90"/></clipPath><clipPath id="br"><rect x="50" width="50" height="90"/></clipPath></defs><path d="' + HEART + '" fill="#c7607a" clip-path="url(#bl)"/><path d="' + HEART + '" fill="#a3a6ad" clip-path="url(#br)"/></svg><span class="disp">Наш дом</span><span class="lbl">' + esc(label) + '</span></a></div><div class="mb-r"><button class="gbtn" data-act="data" aria-label="Данные и настройки">' + ic('gear', 20) + '</button>' + (zone === 'his' ? menu : '') + '</div></header>';
+  return '<header class="mbar"><div class="mb-l">' + (zone === 'her' ? menu : '') + '<a class="brand" href="#/home"><svg viewBox="0 0 100 90" width="17" aria-hidden="true"><defs><clipPath id="bl"><rect width="50" height="90"/></clipPath><clipPath id="br"><rect x="50" width="50" height="90"/></clipPath></defs><path d="' + HEART + '" fill="#c7607a" clip-path="url(#bl)"/><path d="' + HEART + '" fill="#a3a6ad" clip-path="url(#br)"/></svg><span class="disp">Наш дом</span><span class="lbl">' + esc(label) + '</span></a></div><div class="mb-r"><button class="gbtn" data-act="search" aria-label="Поиск">' + ic('search', 20) + '</button><button class="gbtn" data-act="data" aria-label="Данные и настройки">' + ic('gear', 20) + '</button>' + (zone === 'his' ? menu : '') + '</div></header>';
 }
 function tabbar(zone) {
   const t = (z, l, h, i) => '<a class="' + (zone === z ? 'on ' + z : '') + '" href="' + h + '">' + ic(i, 22) + l + '</a>';
@@ -51,6 +51,7 @@ function herSide(page) {
     sideItem('spark', 'Красота', '#/her/wish', S.wishes.filter((w) => w.cat === 'cos' || w.cat === 'per').length, page === 'wish' && UI.wishCat === 'beauty', 'wishCat:beauty') +
     sideItem('film', 'Кино', '#/her/lists', left(myLists('a', 'w')).length, page === 'lists' && UI.listKind === 'w', 'listKind:w') +
     sideItem('book', 'Книги', '#/her/lists', left(myLists('a', 'r')).length, page === 'lists' && UI.listKind === 'r', 'listKind:r') +
+    (giftsVisible('her') ? sideItem('gift', 'Тайные подарки', '#/her/gifts', (S.p_a_gifts || []).filter((g) => !g.done).length, page === 'gifts') : '') +
     '<div class="cap">Быстро</div>' + quick('Добавить пункт учёбы', 'addItAny') + quick('Новая хотелка', 'add', 'data-k="wishes"') + quick('Добавить фильм', 'add', 'data-k="films"') +
     '<div class="sidefoot"><a class="rowi" href="#/home">' + ic('heart', 18) + 'Наш дом</a></div></aside>';
 }
@@ -62,10 +63,11 @@ function hisSide(page) {
     sideItem('play', 'Играть', '#/his/lists', c('p'), page === 'lists' && UI.listKind === 'p', 'listKind:p') +
     sideItem('book', 'Читать', '#/his/lists', c('r'), page === 'lists' && UI.listKind === 'r', 'listKind:r') +
     sideItem('server', 'Сервер', '#/his/server', '', page === 'server') +
+    (giftsVisible('his') ? sideItem('gift', 'Тайные подарки', '#/his/gifts', (S.p_b_gifts || []).filter((g) => !g.done).length, page === 'gifts') : '') +
     '<div class="cap">Быстро</div>' + quick('Новая хотелка', 'add', 'data-k="hwishes"') + quick('Добавить в список', 'add', 'data-k="lists"') + quick('Выбрать фильм', 'pickFilm') + '<a class="rowi" href="#/his/server">' + ic('plus', 18, 2) + 'Проверить сервер</a>' +
     '<div class="sidefoot"><a class="rowi" href="#/home">' + ic('heart', 18) + 'Наш дом</a></div></aside>';
 }
-const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому'], ['buys', 'Покупки']];
+const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому'], ['buys', 'Покупки'], ['note', 'Заметка дня'], ['us', 'Мы вместе']];
 function tnav(page) {
   return '<nav class="tnav glass" aria-label="Общие разделы"><div class="tl">' + TNAV.map((t) => '<a href="#/tog/' + t[0] + '"' + (page === t[0] ? ' class="on"' : '') + '>' + t[1] + '</a>').join('') + '</div><div class="seg" aria-label="Чья половина"><a href="#/her">Её</a><a class="on" href="#/tog">Общее</a><a href="#/his">Его</a></div></nav>';
 }
