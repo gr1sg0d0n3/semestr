@@ -84,7 +84,7 @@ server {
     location = /sw.js { add_header Cache-Control "no-cache"; add_header X-Robots-Tag "noindex" always; }
     location = /index.html { add_header Cache-Control "no-cache"; add_header X-Robots-Tag "noindex" always; }
     client_max_body_size 10m;
-    location /api/ { proxy_pass http://127.0.0.1:8787; proxy_set_header X-Forwarded-For \$remote_addr; proxy_read_timeout 60s; }
+    location /api/ { proxy_pass http://127.0.0.1:38787; proxy_set_header X-Forwarded-For \$remote_addr; proxy_read_timeout 60s; }
     location /photos/ { alias /var/lib/nashdom/photos/; expires 30d; add_header Cache-Control "public, immutable"; add_header X-Robots-Tag "noindex" always; }
     location / { try_files \$uri \$uri/ =404; }
 }
