@@ -1,5 +1,5 @@
 /* ====== закреп: что показывать на главных страницах (настраивается) ====== */
-const PIN_DEF = { her: ['next', 'wishes', 'lw', 'lr', 'deadlines'], his: ['server', 'hwishes', 'lw', 'lp', 'lr'], tog: ['dates', 'chores', 'shop'] };
+const PIN_DEF = { her: ['next', 'wishes', 'lw', 'lr', 'deadlines'], his: ['server', 'hwishes', 'lw', 'lp', 'lr'], tog: ['dates', 'chores', 'buys'] };
 const PIN_Z = { her: 'Её страница', his: 'Его страница', tog: 'Общее' };
 const whoOf = (z) => z === 'her' ? 'a' : 'b';
 const listRows = (k, z) => left(S.lists.filter((l) => l.kind === k && l.who === whoOf(z))).slice(0, 3).map((l) => [l.title, l.meta]);
@@ -25,7 +25,8 @@ const PINW = {
   lr: { t: 'Читать', z: ['her', 'his'], icon: 'book', link: '#/his/lists', more: 'Весь список', rows: (z) => listRows('r', z), short(z) { return ['Читать', listCnt('r', z) + ' в списке']; } },
   dates: { t: 'Ближайшие даты', icon: 'cal', link: '#/tog/dates', more: 'Все даты', rows: () => datesRows().slice(0, 3).map((x) => [x.d.name, dayTxt(x.n)]), short() { const x = datesRows()[0]; return [x ? x.d.name : 'Даты', x ? 'через ' + dayTxt(x.n) : 'Дат пока нет']; } },
   chores: { t: 'Дела по дому', icon: 'home', link: '#/tog/chores', more: 'Открыть дела', rows: () => left(S.chores).slice(0, 3).map((c) => [c.name, PEOPLE[c.who]]), short() { const l = left(S.chores); return ['Дела по дому', l.length ? 'осталось ' + l.length + ': ' + l[0].name : 'Всё сделано']; } },
-  shop: { t: 'Покупки', icon: 'bag', link: '#/tog/kitchen', more: 'Открыть кухню', rows: () => left(S.shop).slice(0, 3).map((s) => [s.name, '']), short() { const l = left(S.shop); return ['Покупки', l.length ? l.length + ' в списке: ' + l[0].name : 'Список пуст']; } },
+  buys: { t: 'Нужно купить', icon: 'bag', link: '#/tog/buys', more: 'Открыть покупки', rows: () => buyLeft().slice(0, 3).map((b) => [b.name, (b.when ? fmtD(b.when) : '') + (b.who ? ' · ' + PEOPLE[b.who] : '')]), short() { const l = buyLeft(); return ['Нужно купить', l.length ? 'осталось ' + l.length + ': ' + l[0].name : 'Всё куплено']; } },
+  shop: { t: 'Продукты', icon: 'bag', link: '#/tog/kitchen', more: 'Открыть кухню', rows: () => left(S.shop).slice(0, 3).map((s) => [s.name, '']), short() { const l = left(S.shop); return ['Покупки', l.length ? l.length + ' в списке: ' + l[0].name : 'Список пуст']; } },
   films: { t: 'Кино, в очереди', icon: 'film', link: '#/tog/films', more: 'Открыть кино', rows: () => S.films.filter((f) => !f.seen).slice(0, 3).map((f) => [f.title, f.note]), short() { const f = S.films.filter((x) => !x.seen)[0]; return ['Кино', f ? f.title : 'Очередь пуста']; } },
   trip: { t: 'Ближайшая поездка', icon: 'pin', link: '#/tog/trips', more: 'Все поездки', rows: () => S.trips.slice(0, 3).map((t) => [t.name, t.from ? fmtD(t.from) : '']), short() { const t = S.trips[0]; return ['Поездка', t ? t.name : 'Пока нет']; } },
 };

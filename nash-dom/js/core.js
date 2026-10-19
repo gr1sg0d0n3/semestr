@@ -143,6 +143,11 @@ function migrate() {
   }
   if (!S.cats) S.cats = { her: [['bag', 'Сумки'], ['cos', 'Косметика'], ['per', 'Парфюм'], ['oth', 'Другое']], his: [['tech', 'Техника'], ['clo', 'Одежда'], ['oth', 'Другое']] };
   if (!S.hwishes) S.hwishes = [['Наушники', 'tech'], ['Механическая клавиатура', 'tech'], ['Худи', 'clo'], ['Кроссовки', 'clo'], ['Рюкзак', 'oth'], ['Подарок', 'oth']].map((x) => ({ id: uid(), name: x[0], cat: x[1], shop: '', price: '', done: false }));
+  if (!S.buys) {
+    const d = (n) => { const t = today(); t.setDate(t.getDate() + n); return isoD(t); };
+    S.buys = [['Корм для кота', 1, 'b'], ['Подарок для мамы', 5, 'a'], ['Лампочки в коридор', 3, '']].map((x) => ({ id: uid(), name: x[0], when: d(x[1]), who: x[2], note: '', done: false }));
+  }
+  if (!S.migBuys) { S.migBuys = 1; const i = S.pins.tog.indexOf('shop'); if (i >= 0 && !S.pins.tog.includes('buys')) S.pins.tog[i] = 'buys'; }
   if (!S.pins.his.includes('hwishes') && !S.migHw) { S.pins.his.splice(1, 0, 'hwishes'); S.migHw = 1; }
 }
 function load() {
@@ -152,7 +157,7 @@ function load() {
 let memStore = null;
 function persist() {
   const j = JSON.stringify(S);
-  try { localStorage.setItem(KEY, j); } catch (e) { memStore = j; }
+  try { localStorage.setItem(KEY, j); } catch (e) { memStore = j; if (typeof toast === 'function') toast('Память браузера заполнена: изменения не сохранятся после закрытия. Удалите часть фото.'); }
   if (window.onNdSave) window.onNdSave(S); // сюда позже подключится синхронизация с сервером
 }
 const PEOPLE = { a: 'Кристина', b: 'Гриша' };
@@ -191,6 +196,27 @@ function toast(msg) {
 }
 
 /* ====== форма-диалог (добавить / изменить / удалить) ====== */
+function normUrl(u) {
+  u = (u || '').trim(); if (!u) return '';
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u.replace(/^\/+/, '');
+  return /^https?:\/\/[^\s]+$/i.test(u) ? u : '';
+}
+function shrinkImg(file, cb) {
+  const r = new FileReader();
+  r.onerror = () => cb('');
+  r.onload = () => {
+    const im = new Image();
+    im.onerror = () => cb('');
+    im.onload = () => {
+      const m = 520, k = Math.min(1, m / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.72));
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
 function openForm(cfg) {
   const dlg = $('#dlg'), v = cfg.values || {};
   const fld = (f) => {
@@ -199,6 +225,7 @@ function openForm(cfg) {
     let inp;
     if (f.type === 'select') inp = '<select id="' + id + '" name="' + f.k + '">' + f.options.map((o) => '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('') + '</select>';
     else if (f.type === 'check') inp = '<label class="chkl"><input type="checkbox" id="' + id + '" name="' + f.k + '"' + (val ? ' checked' : '') + '><span>' + esc(f.label) + '</span></label>';
+    else if (f.type === 'photo') inp = '<div class="ph" data-ph="' + f.k + '"><input type="hidden" id="' + id + '" name="' + f.k + '" value="' + esc(val) + '"><div class="phv">' + (val ? '<img src="' + esc(val) + '" alt="">' : '') + '</div><div class="pha"><label class="btn sm phl">' + (val ? 'Заменить фото' : 'Выбрать фото') + '<input type="file" accept="image/*" class="vh" data-phf="' + f.k + '"></label><button type="button" class="btn sm" data-dact="phx"' + (val ? '' : ' hidden') + '>Убрать</button></div></div>';
     else if (f.type === 'textarea') inp = '<textarea id="' + id + '" name="' + f.k + '" rows="3">' + esc(val) + '</textarea>';
     else inp = '<input id="' + id + '" name="' + f.k + '" type="' + (f.type || 'text') + '" value="' + esc(val) + '"' + (f.ph ? ' placeholder="' + esc(f.ph) + '"' : '') + (f.type === 'number' ? ' min="' + (f.min == null ? 0 : f.min) + '" max="' + (f.max == null ? 99 : f.max) + '" inputmode="numeric"' : '') + req + '>';
     return f.type === 'check' ? '<div class="fr">' + inp + '</div>' : '<div class="fr"><label for="' + id + '">' + esc(f.label) + '</label>' + inp + '</div>';
@@ -211,14 +238,25 @@ function openForm(cfg) {
     const out = {};
     for (const f of cfg.fields) {
       const el = form.elements[f.k]; let x = f.type === 'check' ? el.checked : el.value.trim();
+      if (f.type === 'url') x = normUrl(x);
       if (f.req && !x) { el.focus(); el.classList.add('bad'); return; }
       if (f.type === 'number') x = Math.max(f.min == null ? 0 : f.min, Math.min(f.max == null ? 99 : f.max, +x || 0));
       out[f.k] = x;
     }
     dlg.close(); cfg.onSave(out);
   });
+  form.addEventListener('change', (e) => {
+    const fi = e.target.closest('[data-phf]'); if (!fi || !fi.files[0]) return;
+    const w = fi.closest('.ph');
+    shrinkImg(fi.files[0], (url) => {
+      if (!url) { toast('Не удалось открыть фото'); return; }
+      w.querySelector('input[type=hidden]').value = url; w.querySelector('.phv').innerHTML = '<img src="' + url + '" alt="">';
+      w.querySelector('[data-dact=phx]').hidden = false; w.querySelector('.phl').firstChild.nodeValue = 'Заменить фото'; fi.value = '';
+    });
+  });
   form.addEventListener('click', (e) => {
     const b = e.target.closest('[data-dact]'); if (!b) return;
+    if (b.dataset.dact === 'phx') { const w = b.closest('.ph'); w.querySelector('input[type=hidden]').value = ''; w.querySelector('.phv').innerHTML = ''; b.hidden = true; w.querySelector('.phl').firstChild.nodeValue = 'Выбрать фото'; }
     if (b.dataset.dact === 'cancel') dlg.close();
     if (b.dataset.dact === 'del') {
       if (!armed) { armed = true; b.textContent = 'Точно удалить?'; b.classList.add('armed'); return; }

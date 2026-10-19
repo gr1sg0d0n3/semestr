@@ -109,6 +109,21 @@ function questPage() {
 }
 
 /* ====== дела по дому ====== */
+const buyLeft = () => S.buys.filter((b) => !b.done).sort((a, b) => (a.when || '9999').localeCompare(b.when || '9999'));
+function buysPage() {
+  const f = UI.buyTab || 'all', tabs = [['all', 'Все'], ['a', 'Кристина'], ['b', 'Гриша'], ['done', 'Куплено']];
+  let l = S.buys.slice();
+  if (f === 'done') l = l.filter((b) => b.done); else { l = l.filter((b) => !b.done); if (f !== 'all') l = l.filter((b) => b.who === f || b.who === ''); }
+  l.sort((a, b) => (a.when || '9999').localeCompare(b.when || '9999'));
+  const rows = l.map((b) => {
+    const n = b.when ? daysTo(b.when) : null, late = !b.done && n !== null && n < 0;
+    const sm = [b.when ? (late ? 'просрочено, ' : 'до ') + fmtD(b.when) : '', b.note].filter(Boolean).map(esc).join(' · ');
+    return '<div class="li ' + (b.done ? 'dn' : '') + (late ? ' late' : '') + '">' + ckb('buys', b.id, b.done) + '<div class="t">' + esc(b.name) + (sm ? '<small>' + sm + '</small>' : '') + '</div><button class="who2 ' + (b.who || 'c') + '" data-act="swapBuy" data-id="' + b.id + '" aria-label="Сменить, кто покупает">' + (b.who ? PEOPLE[b.who] : 'Кто угодно') + '</button>' + pen('buys', b.id) + '</div>';
+  }).join('');
+  return th('Покупки', 'Что нужно купить, к какому числу и кто это сделает. Нажмите на имя, чтобы сменить.') +
+    '<section class="glass box in" style="--i:1">' + tabs2('buyTab', f, tabs) + '<div style="margin-top:10px">' + (rows || empty(f === 'done' ? 'Пока ничего не куплено.' : 'Покупать нечего.')) + '</div>' + qaForm('buys', 'Что нужно купить') +
+    '<div class="acts" style="margin-top:12px">' + btn('Убрать купленное', 'clearBuys', { c: 'sm' }) + '</div></section>';
+}
 function choresPage() {
   const A = S.chores.filter((c) => c.who === 'a').length, B = S.chores.length - A, tot = Math.max(1, S.chores.length);
   const rows = S.chores.map((c) => '<div class="li ' + (c.done ? 'dn' : '') + '">' + ckb('chores', c.id, c.done) + '<div class="t">' + esc(c.name) + (c.freq ? '<small>' + esc(c.freq) + '</small>' : '') + '</div><button class="who2 ' + c.who + '" data-act="swapWho" data-id="' + c.id + '" aria-label="Передать дело">' + PEOPLE[c.who] + '</button>' + pen('chores', c.id) + '</div>').join('');

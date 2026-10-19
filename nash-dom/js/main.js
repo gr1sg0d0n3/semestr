@@ -2,8 +2,8 @@
 /* ====== схемы записей: что можно добавлять и менять ====== */
 const T = (k, label, o) => Object.assign({ k, label }, o || {});
 const SCH = {
-  wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: S.cats.her }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.her[0][0], shop: '', price: '', done: false }) },
-  hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: S.cats.his }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.his[0][0], shop: '', price: '', done: false }) },
+  wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: S.cats.her }), T('shop', 'Где купить'), T('price', 'Цена'), T('url', 'Ссылка на товар', { type: 'url', ph: 'https://…' }), T('photo', 'Фото', { type: 'photo' }), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.her[0][0], shop: '', price: '', url: '', photo: '', done: false }) },
+  hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: S.cats.his }), T('shop', 'Где купить'), T('price', 'Цена'), T('url', 'Ссылка на товар', { type: 'url', ph: 'https://…' }), T('photo', 'Фото', { type: 'photo' }), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.his[0][0], shop: '', price: '', url: '', photo: '', done: false }) },
   films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0 }) },
   lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: kindsOf(document.body.dataset.z).map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, who: curWho(), meta: '', done: false }) },
   prem: { t: 'Новая премьера', n: 'премьеру', f: () => [T('title', 'Название', { req: 1 }), T('date', 'Дата выхода', { type: 'date', req: 1 }), T('where', 'Где', { type: 'select', options: [['k', 'В кино'], ['o', 'Онлайн']] }), T('place', 'Платформа или кинотеатр')], mk: () => ({ date: isoD(today()), where: 'k', place: '', want: false, cal: false }) },
@@ -13,14 +13,15 @@ const SCH = {
   dates: { t: 'Новая дата', n: 'дату', f: () => [T('name', 'Событие', { req: 1 }), T('date', 'Дата', { type: 'date', req: 1 }), T('yearly', 'Повторять каждый год', { type: 'check' })], mk: () => ({ date: isoD(today()), yearly: true }) },
   trips: { t: 'Новая поездка', n: 'поездку', f: () => [T('name', 'Куда', { req: 1 }), T('from', 'Дата отъезда', { type: 'date' }), T('to', 'Дата возвращения', { type: 'date' })], mk: () => ({ from: '', to: '', steps: [], pack: [] }) },
   qs: { t: 'Новый вопрос', n: 'вопрос', f: () => [T('text', 'Текст вопроса', { type: 'textarea', req: 1 })], mk: () => ({}) },
+  buys: { t: 'Новая покупка', n: 'покупку', f: () => [T('name', 'Что купить', { req: 1 }), T('when', 'Купить до', { type: 'date' }), T('who', 'Кто покупает', { type: 'select', options: [['', 'Кто угодно'], ['a', 'Кристина'], ['b', 'Гриша']] }), T('note', 'Заметка', { ph: 'Магазин, размер, сколько' }), T('done', 'Куплено', { type: 'check' })], mk: () => ({ when: '', who: '', note: '', done: false }) },
   chores: { t: 'Новое дело', n: 'дело', f: () => [T('name', 'Что сделать', { req: 1 }), T('freq', 'Как часто', { ph: 'Например, раз в неделю' }), T('who', 'На ком', { type: 'select', options: [['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Сделано', { type: 'check' })], mk: () => ({ freq: '', who: 'a', done: false }) },
 };
-const FEM = { wishes: 1, hwishes: 1, prem: 1, dates: 1, trips: 1, shop: 1, places: 0 };
+const FEM = { buys: 1, wishes: 1, hwishes: 1, prem: 1, dates: 1, trips: 1, shop: 1, places: 0 };
 function commit() { persist(); render({ keep: true }); }
 const findIn = (arr, id) => arr.find((x) => x.id === id);
 
 /* ====== отрисовка ====== */
-const LABEL = { '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
+const LABEL = { buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
 function route() { const p = location.hash.replace(/^#\/?/, '').split('/'); return { zone: p[0] || 'home', page: p[1] || '' }; }
 let lastKey = '', focusId = '';
 function render(o) {
@@ -31,7 +32,7 @@ function render(o) {
   const z = r.zone, pg = r.page;
   if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage('her') : pg === 'lists' ? listsPage('her') : herPage());
   else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'server' ? serverPage() : hisPage());
-  else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
+  else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
   else html = homePage();
   const same = key === lastKey;
   app.className = (same && o.keep ? 'noanim ' : '') + 'z-' + (z === 'home' ? 'home' : z);
@@ -45,7 +46,7 @@ function render(o) {
 }
 
 /* ====== действия ====== */
-const UIKEY = { studyF: 'studyF', wishCat: 'wishCat', listKind: 'listKind', filmTab: 'filmTab', premTab: 'premTab', placeTab: 'placeTab', menuSec: 'menuSec', trip: 'trip' };
+const UIKEY = { buyTab: 'buyTab', studyF: 'studyF', wishCat: 'wishCat', listKind: 'listKind', filmTab: 'filmTab', premTab: 'premTab', placeTab: 'placeTab', menuSec: 'menuSec', trip: 'trip' };
 const ACT = {
   go(el) { location.hash = el.dataset.href; },
   drawer() { document.body.classList.toggle('drawer'); },
@@ -102,13 +103,15 @@ const ACT = {
   showAns() { const a = S.qa[S.qcur] || (S.qa[S.qcur] = { a: '', b: '', shown: false }); if (!(a.a || '').trim() || !(a.b || '').trim()) return toast('Сначала оба напишите ответ'); a.shown = true; commit(); },
   hideAns() { const a = S.qa[S.qcur]; if (a) { a.shown = false; a.a = ''; a.b = ''; } commit(); },
   /* дела */
+  swapBuy(el) { const c = findIn(S.buys, el.dataset.id); if (!c) return; c.who = c.who === '' ? 'a' : c.who === 'a' ? 'b' : ''; commit(); },
+  clearBuys() { S.buys = S.buys.filter((b) => !b.done); commit(); toast('Купленное убрано'); },
   swapWho(el) { const c = findIn(S.chores, el.dataset.id); c.who = c.who === 'a' ? 'b' : 'a'; commit(); },
   resetChores() { S.chores.forEach((c) => { c.done = false; }); commit(); toast('Новая неделя'); },
   /* сервер */
   tgSwitch() { S.set.tg = !S.set.tg; commit(); },
   recheck() { toast(navigator.onLine ? 'Связь есть. Сайт открыт.' : 'Нет сети. Записи сохранены на устройстве.'); render({ keep: true }); },
 };
-['studyF', 'wishCat', 'listKind', 'filmTab', 'premTab', 'placeTab', 'menuSec', 'trip'].forEach((k) => { ACT[k] = (el) => { UI[k] = el.dataset.v; if (k === 'filmTab') UI.filmTab = el.dataset.v; commit(); }; });
+['buyTab', 'studyF', 'wishCat', 'listKind', 'filmTab', 'premTab', 'placeTab', 'menuSec', 'trip'].forEach((k) => { ACT[k] = (el) => { UI[k] = el.dataset.v; if (k === 'filmTab') UI.filmTab = el.dataset.v; commit(); }; });
 function itForm(s, it) {
   openForm({ title: it ? 'Пункт: ' + s.name : 'Новый пункт: ' + s.name, fields: [T('type', 'Тип', { type: 'select', options: Object.keys(TYPE_N).map((k) => [k, TYPE_N[k]]) }), T('label', 'Название', { req: 1, def: 'Вебинар' }), T('date', 'Срок', { type: 'date' }), T('time', 'Время', { type: 'time' }), T('done', 'Готово', { type: 'check' })], values: it || { type: 'w', label: 'Вебинар', date: '', time: '', done: false }, save: it ? 'Сохранить' : 'Добавить',
     onSave(v) { if (it) Object.assign(it, v); else s.items.push(Object.assign({ id: uid() }, v)); commit(); }, onDelete: it ? () => { s.items = s.items.filter((x) => x !== it); commit(); } : null });
@@ -121,6 +124,7 @@ const QA = {
   places: (v, f) => S.places.push({ id: uid(), name: v, note: '', visited: f.dataset.visited === '1', date: '' }),
   dishes: (v, f) => S.dishes.push({ id: uid(), sec: f.dataset.sec, name: v, note: '', plan: false }),
   shop: (v) => S.shop.push({ id: uid(), name: v, done: false }),
+  buys: (v) => S.buys.push({ id: uid(), name: v, when: '', who: '', note: '', done: false }),
   chores: (v) => S.chores.push({ id: uid(), name: v, freq: '', who: 'a', done: false }),
   steps: (v) => findIn(S.trips, UI.trip).steps.push({ id: uid(), t: v, done: false }),
   pack: (v) => findIn(S.trips, UI.trip).pack.push({ id: uid(), t: v, done: false }),
