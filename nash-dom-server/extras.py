@@ -83,20 +83,22 @@ class Fail(Exception):
 def cache_img(url):
     if not url:
         return ''
-    name = hashlib.md5(url.encode()).hexdigest() + '.jpg'
-    path = os.path.join(A.PHOTOS, name)
-    if os.path.exists(path):
-        os.utime(path)
-        return '/photos/' + name
+    h = hashlib.md5(url.encode()).hexdigest()
+    for ext in ('jpg', 'png'):
+        path = os.path.join(A.PHOTOS, h + '.' + ext)
+        if os.path.exists(path):
+            os.utime(path)
+            return '/photos/%s.%s' % (h, ext)
     try:
         b = http(url, timeout=15)
     except Exception:
         return ''
-    if b[:3] != b'\xff\xd8\xff' or len(b) > 900000:
+    ext = 'jpg' if b[:3] == b'\xff\xd8\xff' else 'png' if b[:8] == b'\x89PNG\r\n\x1a\n' else ''
+    if not ext or len(b) > 900000:
         return ''
-    with open(path, 'wb') as f:
+    with open(os.path.join(A.PHOTOS, h + '.' + ext), 'wb') as f:
         f.write(b)
-    return '/photos/' + name
+    return '/photos/%s.%s' % (h, ext)
 
 
 # ---------- кино ----------
@@ -279,6 +281,85 @@ def recipe_random(cat):
     st_ru = translate('\n'.join(steps)).split('\n')
     return {'name': name.strip(), 'cat': m.get('strCategory') or '', 'area': m.get('strArea') or '', 'poster': cache_img(m.get('strMealThumb') or ''),
             'ing': '\n'.join(ing_ru), 'steps': '\n'.join(s.strip() for s in st_ru if s.strip()), 'url': m.get('strSource') or ''}
+
+
+
+# ---------- места: поиск адреса и случайное место в Петербурге (OpenStreetMap) ----------
+UA = {'User-Agent': 'nashdom/1.0 (private family site)'}
+
+
+def geo_search(q):
+    url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode({'q': q, 'format': 'jsonv2', 'limit': 6, 'accept-language': 'ru', 'addressdetails': 0, 'viewbox': '29.4,60.3,30.9,59.6'})
+    return [{'name': (r.get('name') or r.get('display_name', '').split(',')[0]), 'addr': r.get('display_name', '')[:160], 'lat': float(r['lat']), 'lng': float(r['lon'])} for r in json.loads(http(url, UA, timeout=15))]
+
+
+PLACE_CATS = {
+    'restaurant': ('Ресторан', ['["amenity"="restaurant"]']),
+    'cafe': ('Кафе или кофейня', ['["amenity"="cafe"]']),
+    'bar': ('Бар', ['["amenity"~"^(bar|pub|biergarten)$"]']),
+    'sight': ('Достопримечательность', ['["tourism"~"^(attraction|viewpoint)$"]', '["historic"~"^(monument|castle|manor|building|memorial)$"]["wikipedia"]']),
+    'museum': ('Музей или галерея', ['["tourism"~"^(museum|gallery)$"]']),
+    'park': ('Парк или сад', ['["leisure"~"^(park|garden)$"]']),
+    'shop': ('Интересный магазин', ['["shop"~"^(books|gift|antiques|second_hand|art|music|boutique|craft|games|stationery|variety_store)$"]']),
+}
+OVERPASS = ('https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter')
+
+
+def overpass(q):
+    last = None
+    for ep in OVERPASS:
+        try:
+            return json.loads(http(ep, {**UA, 'Content-Type': 'application/x-www-form-urlencoded'}, urllib.parse.urlencode({'data': q}).encode(), timeout=30))
+        except Exception as e:
+            last = e
+    raise last
+
+
+def random_tile():
+    if random.random() < 0.7:
+        s, n, w, e = 59.90, 59.99, 30.22, 30.42  # центр города
+    else:
+        s, n, w, e = 59.80, 60.05, 30.10, 30.55
+    la, lo = random.uniform(s, n), random.uniform(w, e)
+    return (la - 0.02, lo - 0.035, la + 0.02, lo + 0.035)
+
+
+def place_random(cat):
+    key = cat if cat in PLACE_CATS else random.choice(list(PLACE_CATS))
+    label, filters = PLACE_CATS[key]
+    els = []
+    for _ in range(5):
+        bb = random_tile()
+        q = '[out:json][timeout:25];(' + ''.join('nwr%s["name"](%.4f,%.4f,%.4f,%.4f);' % ((f,) + bb) for f in filters) + ');out center 80;'
+        els = [x for x in overpass(q).get('elements', []) if x.get('tags', {}).get('name')]
+        if els:
+            break
+    if not els:
+        raise Fail('В этот раз ничего не нашлось, нажмите ещё раз')
+    good = [x for x in els if any(k in x['tags'] for k in ('website', 'opening_hours', 'wikipedia', 'description', 'contact:website'))]
+    x = random.choice(good if len(good) >= 3 else els)
+    t = x['tags']
+    lat = x.get('lat') or (x.get('center') or {}).get('lat'); lng = x.get('lon') or (x.get('center') or {}).get('lon')
+    street = ' '.join(filter(None, [t.get('addr:street'), t.get('addr:housenumber')]))
+    bits = []
+    if t.get('cuisine'):
+        bits.append('Кухня: ' + t['cuisine'].replace(';', ', ').replace('_', ' '))
+    if t.get('opening_hours'):
+        oh = t['opening_hours']
+        for a, b in (('Mo', 'Пн'), ('Tu', 'Вт'), ('We', 'Ср'), ('Th', 'Чт'), ('Fr', 'Пт'), ('Sa', 'Сб'), ('Su', 'Вс'), ('PH', 'праздники'), ('off', 'выходной')):
+            oh = re.sub(r'\b%s\b' % a, b, oh)
+        bits.append('Часы работы: ' + oh)
+    desc = t.get('description:ru') or t.get('description') or ''
+    photo = ''
+    wp = t.get('wikipedia', '')
+    if wp.startswith('ru:'):
+        try:
+            sm = json.loads(http('https://ru.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(wp[3:].replace(' ', '_')), UA, timeout=10))
+            desc = desc or (sm.get('extract') or '')[:500]
+            photo = cache_img((sm.get('thumbnail') or {}).get('source', ''))
+        except Exception:
+            pass
+    return {'name': t['name'], 'cat': label, 'desc': ' '.join(filter(None, [desc, ' · '.join(bits)]))[:600], 'addr': street, 'site': t.get('website') or t.get('contact:website') or '', 'lat': lat, 'lng': lng, 'poster': photo}
 
 
 # ---------- маркетплейс: разбор сообщения ----------
@@ -468,6 +549,10 @@ def http_extra(h, method, path, who):
             return h.send(200, {'rkp': kp_rating(q.get('title', ''), q.get('year', ''))}) or True
         if path == '/api/book/random':
             return h.send(200, {'item': book_random(q.get('genre', ''))}) or True
+        if path == '/api/geo/search':
+            return h.send(200, {'items': geo_search(q.get('q', '').strip()[:100])}) or True
+        if path == '/api/place/random':
+            return h.send(200, {'item': place_random(q.get('cat', ''))}) or True
         if path == '/api/recipe/random':
             return h.send(200, {'item': recipe_random(q.get('cat', ''))}) or True
     except Fail as e:
@@ -491,6 +576,8 @@ def check():
     t('Кинопоиск', lambda: kp('/v2.2/films/301'))
     t('Книги (Open Library)', lambda: jget('https://openlibrary.org/search.json?q=tolkien&limit=1'))
     t('Рецепты (TheMealDB)', lambda: jget('https://www.themealdb.com/api/json/v1/1/random.php'))
+    t('Карта: поиск адреса', lambda: geo_search('Невский проспект'))
+    t('Случайное место (OpenStreetMap)', lambda: overpass('[out:json][timeout:10];node(59.93,30.31,59.94,30.32)["amenity"];out 1;'))
     t('Перевод', lambda: (_ for _ in ()).throw(Fail('не работает')) if translate('apple') == 'apple' else None)
     return out
 

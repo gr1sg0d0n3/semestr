@@ -7,11 +7,11 @@ const SCH = {
   films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 }), T('poster', 'Постер', { type: 'photo' }), T('overview', 'Описание', { type: 'textarea' })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0, poster: '', overview: '' }) },
   lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: kindsOf(document.body.dataset.z).map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, who: curWho(), meta: '', done: false }) },
   prem: { t: 'Новая премьера', n: 'премьеру', f: () => [T('title', 'Название', { req: 1 }), T('date', 'Дата выхода', { type: 'date', req: 1 }), T('where', 'Где', { type: 'select', options: [['k', 'В кино'], ['o', 'Онлайн']] }), T('place', 'Платформа или кинотеатр')], mk: () => ({ date: isoD(today()), where: 'k', place: '', want: false, cal: false }) },
-  places: { t: 'Новое место', n: 'место', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Заметка'), T('visited', 'Уже были', { type: 'check' }), T('date', 'Когда были', { type: 'date' })], mk: () => ({ note: '', visited: UI.placeTab === 'v', date: '' }) },
+  places: { t: 'Новое место', n: 'место', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Заметка'), T('visited', 'Уже были', { type: 'check' }), T('date', 'Когда были', { type: 'date' })], mk: () => ({ note: '', visited: UI.placeTab === 'v', date: '', pics: [] }) },
   dishes: { t: 'Новое блюдо', n: 'блюдо', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Описание'), T('sec', 'Раздел', { type: 'select', options: S.secs.map((s) => [s, s]) })], mk: () => ({ note: '', sec: UI.menuSec, plan: false }) },
   shop: { t: 'Новая покупка', n: 'покупку', f: () => [T('name', 'Что купить', { req: 1 }), T('done', 'Куплено', { type: 'check' })], mk: () => ({ done: false }) },
   dates: { t: 'Новая дата', n: 'дату', f: () => [T('name', 'Событие', { req: 1 }), T('date', 'Дата', { type: 'date', req: 1 }), T('yearly', 'Повторять каждый год', { type: 'check' })], mk: () => ({ date: isoD(today()), yearly: true }) },
-  trips: { t: 'Новая поездка', n: 'поездку', f: () => [T('name', 'Куда', { req: 1 }), T('from', 'Дата отъезда', { type: 'date' }), T('to', 'Дата возвращения', { type: 'date' })], mk: () => ({ from: '', to: '', steps: [], pack: [] }) },
+  trips: { t: 'Новая поездка', n: 'поездку', f: () => [T('name', 'Куда', { req: 1 }), T('from', 'Дата отъезда', { type: 'date' }), T('to', 'Дата возвращения', { type: 'date' })], mk: () => ({ from: '', to: '', steps: [], pack: [], pics: [] }) },
   qs: { t: 'Новый вопрос', n: 'вопрос', f: () => [T('text', 'Текст вопроса', { type: 'textarea', req: 1 })], mk: () => ({}) },
   buys: { t: 'Новая покупка', n: 'покупку', f: () => [T('name', 'Что купить', { req: 1 }), T('when', 'Купить до', { type: 'date' }), T('who', 'Кто покупает', { type: 'select', options: [['', 'Кто угодно'], ['a', 'Кристина'], ['b', 'Гриша']] }), T('note', 'Заметка', { ph: 'Магазин, размер, сколько' }), T('done', 'Куплено', { type: 'check' })], mk: () => ({ when: '', who: '', note: '', done: false }) },
   chores: { t: 'Новое дело', n: 'дело', f: () => [T('name', 'Что сделать', { req: 1 }), T('freq', 'Как часто', { ph: 'Например, раз в неделю' }), T('who', 'На ком', { type: 'select', options: [['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Сделано', { type: 'check' })], mk: () => ({ freq: '', who: 'a', done: false }) },
@@ -41,6 +41,7 @@ function render(o) {
   document.title = (LABEL[pg] ? LABEL[pg] + ' · ' : '') + 'Наш дом';
   if (same && o.keep) { window.scrollTo(0, sy); const s = $('#side'); if (s) s.scrollTop = sideY; } else { window.scrollTo(0, 0); document.body.classList.remove('drawer'); }
   lastKey = key;
+  if (typeof afterRender === 'function') afterRender();
   if (focusId) { const f = document.getElementById(focusId); if (f) f.focus({ preventScroll: true }); focusId = ''; }
   else if (keepFocus) { const t = $('[data-ans="' + keepFocus + '"]'); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }
 }
@@ -209,7 +210,7 @@ document.addEventListener('touchcancel', endDrag, { passive: true });
 document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
-Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3);
+Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3, ACT4);
 load(); render(); NDS.init();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 

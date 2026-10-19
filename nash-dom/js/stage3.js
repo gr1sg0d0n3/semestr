@@ -59,26 +59,28 @@ function recipeToShop(r) {
 }
 
 /* ---------- случайный выбор ---------- */
-const RT = [['film', 'Фильм'], ['tv', 'Сериал'], ['book', 'Книга'], ['recipe', 'Рецепт']];
+const RT = [['film', 'Фильм'], ['tv', 'Сериал'], ['book', 'Книга'], ['recipe', 'Рецепт'], ['place', 'Место']];
+const PCAT = [['', 'Любое'], ['restaurant', 'Ресторан'], ['cafe', 'Кафе и кофейня'], ['bar', 'Бар'], ['sight', 'Достопримечательность'], ['museum', 'Музей и галерея'], ['park', 'Парк'], ['shop', 'Интересный магазин']];
 const FGEN = ['', 'Боевик', 'Приключения', 'Мультфильм', 'Комедия', 'Криминал', 'Документальный', 'Драма', 'Семейный', 'Фэнтези', 'Фантастика', 'Ужасы', 'Детектив', 'Мелодрама', 'Триллер', 'Военный', 'Вестерн'];
 const BGEN = ['', 'Роман', 'Фэнтези', 'Фантастика', 'Детектив', 'Классика', 'История', 'Психология', 'Любовный роман'];
 const RCAT = [['', 'Любая'], ['Chicken', 'Курица'], ['Beef', 'Говядина'], ['Pork', 'Свинина'], ['Seafood', 'Морепродукты'], ['Pasta', 'Паста'], ['Vegetarian', 'Вегетарианское'], ['Dessert', 'Десерты'], ['Breakfast', 'Завтраки']];
-const RF = { genre: '', min: '7', src: 'tmdb', cat: '' };
+const RF = { genre: '', min: '7', src: 'tmdb', cat: '', pcat: '' };
 const RND = {};
+const yaLinkR = null;
 const selOpt = (arr, cur) => arr.map((o) => { const v = Array.isArray(o) ? o[0] : o, l = Array.isArray(o) ? o[1] : (o || 'Любой'); return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('');
 const fsel = (label, f, arr) => '<label class="rfl"><span>' + label + '</span><select data-chg="rndF" data-f="' + f + '">' + selOpt(arr, RF[f]) + '</select></label>';
 function randomPage() {
   const tab = UI.rtab || 'film', r = RND[tab] || {};
-  const filters = tab === 'film' || tab === 'tv' ? fsel('Жанр', 'genre', FGEN) + fsel('Оценка от', 'min', [['0', 'Любая'], ['6', '6'], ['7', '7'], ['8', '8']]) + fsel('Источник', 'src', [['tmdb', 'TMDB'], ['kp', 'Кинопоиск']]) : tab === 'book' ? fsel('Жанр', 'genre', BGEN) : fsel('Категория', 'cat', RCAT);
+  const filters = tab === 'film' || tab === 'tv' ? fsel('Жанр', 'genre', FGEN) + fsel('Оценка от', 'min', [['0', 'Любая'], ['6', '6'], ['7', '7'], ['8', '8']]) + fsel('Источник', 'src', [['tmdb', 'TMDB'], ['kp', 'Кинопоиск']]) : tab === 'book' ? fsel('Жанр', 'genre', BGEN) : tab === 'place' ? fsel('Что ищем', 'pcat', PCAT) : fsel('Категория', 'cat', RCAT);
   let res = '';
   if (r.loading) res = '<div class="rres">Ищу…</div>';
   else if (r.err) res = '<div class="rres err">' + esc(r.err) + '</div>';
   else if (r.item) {
     const it = r.item;
-    const meta = tab === 'book' ? [it.author, it.year] : tab === 'recipe' ? [it.cat, it.area] : [it.year, it.rkp ? 'Кинопоиск ' + it.rkp : '', it.rtmdb ? 'TMDB ' + it.rtmdb : ''];
-    const act = tab === 'book' ? btn('Добавить в «Читать»', 'rndAdd', { c: 'main', i: 'plus', w: 2 }) : tab === 'recipe' ? btn('Сохранить в рецепты', 'rndAdd', { c: 'main', i: 'plus', w: 2 }) : btn('Добавить в очередь', 'rndAdd', { c: 'main', i: 'plus', w: 2 });
+    const meta = tab === 'book' ? [it.author, it.year] : tab === 'recipe' ? [it.cat, it.area] : tab === 'place' ? [it.cat, it.addr] : [it.year, it.rkp ? 'Кинопоиск ' + it.rkp : '', it.rtmdb ? 'TMDB ' + it.rtmdb : ''];
+    const act = tab === 'place' ? btn('Хочу сюда', 'rndAdd', { c: 'main', i: 'plus', w: 2 }) + '<a class="btn" href="' + yaLink(it.lat, it.lng) + '" target="_blank" rel="noopener noreferrer">Яндекс Карты</a>' : tab === 'book' ? btn('Добавить в «Читать»', 'rndAdd', { c: 'main', i: 'plus', w: 2 }) : tab === 'recipe' ? btn('Сохранить в рецепты', 'rndAdd', { c: 'main', i: 'plus', w: 2 }) : btn('Добавить в очередь', 'rndAdd', { c: 'main', i: 'plus', w: 2 });
     res = '<div class="rres ok">' + (it.poster ? '<img class="rpo" src="' + esc(it.poster) + '" alt="">' : '') + '<div class="rtx"><h3>' + esc(it.title || it.name) + '</h3><div class="rm">' + esc(meta.filter(Boolean).join(' · ')) + '</div>' +
-      (tab === 'recipe' ? '<div class="rov">' + esc(ingLines(it.ing).slice(0, 6).join(', ')) + (ingLines(it.ing).length > 6 ? '…' : '') + '</div>' : '<div class="rov">' + esc(it.overview || 'Описания нет.') + '</div>') + '<div class="acts">' + act + btn('Ещё вариант', 'rndRoll', { i: 'dice' }) + '</div></div></div>';
+      (tab === 'recipe' ? '<div class="rov">' + esc(ingLines(it.ing).slice(0, 6).join(', ')) + (ingLines(it.ing).length > 6 ? '…' : '') + '</div>' : '<div class="rov">' + esc((tab === 'place' ? it.desc : it.overview) || 'Описания нет.') + '</div>') + '<div class="acts">' + act + btn('Ещё вариант', 'rndRoll', { i: 'dice' }) + '</div></div></div>';
   } else res = '<div class="rres">Нажмите «Выбрать», и сайт предложит вариант.</div>';
   return th('Случайное', 'Не знаете, что смотреть, читать или готовить? Сайт подберёт вариант.') +
     '<section class="glass box in" style="--i:1">' + tabs2('rndTab', tab, RT) + '<div class="rf">' + filters + '</div><div class="acts" style="margin:10px 0 14px">' + btn('Выбрать', 'rndRoll', { c: 'main', i: 'dice' }) + '</div>' + res + '</section>';
@@ -88,6 +90,7 @@ async function rndRoll() {
   let path;
   if (tab === 'film' || tab === 'tv') path = '/api/film/random?type=' + (tab === 'tv' ? 'tv' : 'movie') + '&genre=' + encodeURIComponent(RF.genre) + '&min=' + RF.min + '&src=' + RF.src;
   else if (tab === 'book') path = '/api/book/random?genre=' + encodeURIComponent(RF.genre);
+  else if (tab === 'place') path = '/api/place/random?cat=' + encodeURIComponent(RF.pcat);
   else path = '/api/recipe/random?cat=' + encodeURIComponent(RF.cat);
   const j = await srv(path);
   RND[tab] = j.item ? { item: j.item } : { err: j.error || 'Не получилось' };
@@ -98,6 +101,9 @@ function rndAdd() {
   if (tab === 'book') {
     if (!S.lists.some((l) => l.kind === 'r' && l.title === it.title)) S.lists.push({ id: uid(), kind: 'r', who: curWho(), title: it.title, meta: [it.author, it.year].filter(Boolean).join(', '), done: false });
     commit(); toast('Добавлено в «Читать»');
+  } else if (tab === 'place') {
+    S.places.push({ id: uid(), name: it.name, note: [it.cat, it.addr].filter(Boolean).join(' · '), visited: false, date: '', lat: it.lat, lng: it.lng, pics: it.poster ? [it.poster] : [] });
+    commit(); toast('Добавлено в «Места»');
   } else if (tab === 'recipe') {
     S.recipes = S.recipes || []; S.recipes.push({ id: uid(), name: it.name, time: '', ing: it.ing, steps: it.steps, photo: it.poster || '', src: 'themealdb' });
     commit(); toast('Рецепт сохранён');

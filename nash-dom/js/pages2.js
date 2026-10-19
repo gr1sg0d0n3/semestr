@@ -48,15 +48,6 @@ function pinPos(id, visited) {
   const x = 8 + (h % 84), y = visited ? 22 + ((h * 7) % 28) : 56 + ((h * 5) % 28);
   return [x, y];
 }
-function placesPage() {
-  const t = UI.placeTab, v = S.places.filter((p) => p.visited), hh = S.places.filter((p) => !p.visited), items = t === 'h' ? hh : v;
-  const pins = S.places.map((p) => { const xy = pinPos(p.id, p.visited); return '<div class="pin" title="' + esc(p.name) + '" style="left:' + xy[0] + '%;top:' + xy[1] + '%"><svg viewBox="0 0 34 42" width="34" aria-hidden="true"><path d="M17 40 C7 28 3 22 3 16 A14 14 0 0 1 31 16 C31 22 27 28 17 40 Z" fill="' + (p.visited ? '#e0709a' : '#8d9097') + '" stroke="' + (p.visited ? '#82284a' : '#5b5e66') + '" stroke-width="3"/><circle cx="17" cy="16" r="5" fill="#fffaf7"/></svg></div>'; }).join('');
-  const rows = items.map((p) => '<div class="li">' + ckb('places', p.id, p.visited, 'visited') + '<div class="t">' + esc(p.name) + (p.note ? '<small>' + esc(p.note) + '</small>' : '') + '</div><span class="m">' + (p.visited ? (p.date ? fmtD(p.date) : 'были') : 'хотим') + '</span>' + pen('places', p.id) + '</div>').join('');
-  return th('Места', 'Где уже были и куда хочется. Розовые метки это были, серые это хотим.') +
-    '<div class="map in" style="--i:1"><svg class="land" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 300 C120 220 220 330 360 250 C470 190 540 260 660 200 C780 140 880 220 1030 150 V430 H-20 Z" fill="#e6dbe0"/><path d="M-20 360 C140 300 260 380 420 320 C560 270 700 350 830 300 C900 275 970 290 1030 270 V430 H-20 Z" fill="#d6d9df"/><path d="M180 190 C300 120 400 230 520 150 C620 90 720 200 820 120" stroke="#82284a" stroke-opacity=".45" stroke-width="2" stroke-dasharray="3 9" stroke-linecap="round" fill="none"/></svg><span class="mk">карта: заглушка</span>' + pins + '</div>' +
-    '<div class="stat2 in" style="--i:2"><div class="sc glass"><b>' + v.length + '</b><span>' + plural(v.length, 'место', 'места', 'мест') + ', где были</span></div><div class="sc glass"><b>' + hh.length + '</b><span>хотим съездить</span></div></div>' +
-    '<section class="glass box in" style="--i:3"><h2>Список</h2>' + tabs2('placeTab', t, [['h', 'Хотим'], ['v', 'Были']]) + (rows || empty('Здесь пока пусто.')) + qaForm('places', 'Новое место', ' data-visited="' + (t === 'v' ? 1 : 0) + '"') + '</section>';
-}
 
 /* ====== меню и кухня ====== */
 function menuPage() {
@@ -92,6 +83,7 @@ function tripsPage() {
   const lst = (arr, key, title, ph) => '<section class="glass box in" style="--i:3"><h2>' + title + '</h2>' + (arr.map((x) => '<div class="li ' + (x.done ? 'dn' : '') + '"><button class="ck" data-act="tgTr" data-k="' + key + '" data-id="' + x.id + '" aria-pressed="' + x.done + '" aria-label="Отметить">' + (x.done ? ic('check', 14, 3) : '') + '</button><div class="t">' + esc(x.t) + '</div><button class="ib" data-act="edTr" data-k="' + key + '" data-id="' + x.id + '" aria-label="Изменить">' + ic('pen', 18) + '</button></div>').join('') || empty('Пока пусто')) + qaForm(key, ph) + '</section>';
   return th('Поездки', 'Куда едем, что уже готово и что взять с собой.') + '<div class="in" style="--i:1;margin-bottom:18px">' + tabs2('trip', tr.id, S.trips.map((x) => [x.id, x.name])) + ' ' + btn('Поездка', 'add', { i: 'plus', w: 2, c: 'sm', d: 'data-k="trips"' }) + '</div>' +
     '<section class="hero glass in" style="--i:2"><div class="ringb">' + ring(pct, 96) + '<span>' + Math.round(pct * 100) + '%</span></div><div class="tx"><div class="big" style="font-size:34px">' + dn + ' из ' + all.length + '</div><div class="sub">пунктов готово: ' + esc(tr.name) + (tr.from ? ', ' + fmtD(tr.from) + (tr.to ? ' – ' + fmtD(tr.to) : '') : '') + '</div></div><div class="acts">' + btn('Даты в календарь', 'tripIcs', { i: 'cal', d: tr.from ? '' : 'aria-disabled="true"' }) + '<button class="ib" data-act="ed" data-k="trips" data-id="' + tr.id + '" aria-label="Изменить поездку">' + ic('pen', 18) + '</button></div></section>' +
+    '<section class="glass box in" style="--i:3;margin-bottom:18px"><h2>Фото</h2>' + picsHtml('trips', tr) + '</section>' +
     '<div class="two">' + lst(tr.steps, 'steps', 'Подготовка', 'Новый шаг') + lst(tr.pack, 'pack', 'Взять с собой', 'Новая вещь') + '</div>';
 }
 
