@@ -51,7 +51,7 @@ const ACT = {
   hm(el) {
     const hm = $('.hmob'), v = el.dataset.v, cls = 's-' + v, was = hm.classList.contains(cls);
     hm.classList.remove('s-her', 's-his', 's-mid'); if (!was) hm.classList.add(cls);
-    $$('.hm .tabbar [data-act]').forEach((b) => b.classList.toggle('on', !was && b.dataset.v === v));
+    $$('.hmob .tabbar [data-act]').forEach((b) => b.classList.toggle('on', !was && b.dataset.v === v));
   },
   data() { openData(); },
   add(el) {
@@ -164,15 +164,65 @@ document.addEventListener('input', (e) => {
 });
 window.addEventListener('hashchange', () => { render(); });
 window.addEventListener('online', () => render({ keep: true })); window.addEventListener('offline', () => render({ keep: true }));
-/* свайп от края: её меню слева, его справа */
-let sx = 0, sy2 = 0;
-document.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy2 = e.touches[0].clientY; }, { passive: true });
-document.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy2, z = document.body.dataset.z, W = window.innerWidth, open = document.body.classList.contains('drawer');
-  if (W > 899 || Math.abs(dy) > 60 || Math.abs(dx) < 70) return;
-  if (z === 'her') { if (!open && sx < 28 && dx > 0) document.body.classList.add('drawer'); else if (open && dx < 0) document.body.classList.remove('drawer'); }
-  if (z === 'his') { if (!open && sx > W - 28 && dx < 0) document.body.classList.add('drawer'); else if (open && dx > 0) document.body.classList.remove('drawer'); }
+/* живое перетягивание пальцем: меню (её слева, его справа) и половинки на главной */
+let G = null, noClick = 0;
+function setSb(on) { document.body.classList.toggle('dragging', on); }
+document.addEventListener('touchstart', (e) => {
+  if (window.innerWidth > 899 || e.touches.length !== 1) { G = null; return; }
+  const t = e.touches[0], z = document.body.dataset.z, W = window.innerWidth, open = document.body.classList.contains('drawer');
+  G = { x: t.clientX, y: t.clientY, mode: null, z, open };
+  const side = $('#side');
+  if ((z === 'her' || z === 'his') && side) {
+    const edge = z === 'her' ? t.clientX < 28 : t.clientX > W - 28;
+    if (edge || open) { G.cand = 'drawer'; G.sw = side.offsetWidth; }
+  }
+  if (z === 'home' && $('.hmob') && !e.target.closest('.tabbar')) G.cand = G.cand || 'home';
+  if (G.cand === 'home') { const h = $('.hmob'), r = h.getBoundingClientRect(), hb = $('.hbtn').getBoundingClientRect(); G.H = r.height; G.top = r.top; G.y0 = hb.top + hb.height / 2 - r.top; }
 }, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (!G || !G.cand) return;
+  const t = e.touches[0], dx = t.clientX - G.x, dy = t.clientY - G.y;
+  if (!G.mode) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    if (G.cand === 'drawer' && Math.abs(dx) > Math.abs(dy) * 1.2) G.mode = 'drawer';
+    else if (G.cand === 'home' && Math.abs(dy) > Math.abs(dx) * 1.2) G.mode = 'home';
+    else { G = null; return; }
+    setSb(true);
+  }
+  e.preventDefault();
+  if (G.mode === 'drawer') {
+    const side = $('#side'), W = G.sw * 1.08, sgn = G.z === 'her' ? -1 : 1;
+    let off = G.open ? 0 : sgn * W;                       /* позиция при закрытом/открытом */
+    off += dx;
+    off = sgn < 0 ? Math.min(0, Math.max(-W, off)) : Math.max(0, Math.min(W, off));
+    G.off = off; G.W = W;
+    side.style.transform = 'translateX(' + off + 'px)';
+    const k = 1 - Math.abs(off) / W; const sc = $('.scrim'); if (sc) { sc.style.opacity = k; sc.style.pointerEvents = 'none'; }
+  } else {
+    const h = $('.hmob'), y = Math.max(G.H * .2, Math.min(G.H * .8, G.y0 + dy));
+    G.y = y; h.classList.remove('s-her', 's-his', 's-mid');
+    const bh = $('.band.her'), bs = $('.band.his'); bh.style.flexGrow = 0; bs.style.flexGrow = 0;
+    const p1 = bh.offsetHeight, p2 = bs.offsetHeight, free = G.H - p1 - p2, r = Math.max(0, Math.min(1, (y - p1) / Math.max(1, free)));
+    bh.style.flexGrow = r; bs.style.flexGrow = 1 - r; G.y = p1 + r * free;
+    $('.hbtn').style.top = G.y + 'px';
+  }
+}, { passive: false });
+function endDrag(e) {
+  if (!G || !G.mode) { G = null; return; }
+  const g = G; G = null; noClick = Date.now(); setSb(false);
+  if (g.mode === 'drawer') {
+    const side = $('#side'), sc = $('.scrim'); side.style.transform = ''; if (sc) { sc.style.opacity = ''; sc.style.pointerEvents = ''; }
+    const frac = Math.abs(g.off) / g.W; document.body.classList.toggle('drawer', frac < (g.open ? .35 : .65));
+  } else {
+    const h = $('.hmob'); ['.band.her', '.band.his'].forEach((s) => { $(s).style.flexGrow = ''; }); $('.hbtn').style.top = '';
+    const f = g.y / g.H; h.classList.remove('s-her', 's-his', 's-mid');
+    if (f > .6) h.classList.add('s-her'); else if (f < .4) h.classList.add('s-his');
+    $$('.hmob .tabbar [data-act]').forEach((b) => b.classList.toggle('on', h.classList.contains('s-' + b.dataset.v)));
+  }
+}
+document.addEventListener('touchend', endDrag, { passive: true });
+document.addEventListener('touchcancel', endDrag, { passive: true });
+document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
 load(); render();
