@@ -4,7 +4,7 @@ const T = (k, label, o) => Object.assign({ k, label }, o || {});
 const SCH = {
   wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: S.cats.her }), T('shop', 'Где купить'), T('price', 'Цена'), T('url', 'Ссылка на товар', { type: 'url', ph: 'https://…' }), T('photo', 'Фото', { type: 'photo' }), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.her[0][0], shop: '', price: '', url: '', photo: '', done: false }) },
   hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: S.cats.his }), T('shop', 'Где купить'), T('price', 'Цена'), T('url', 'Ссылка на товар', { type: 'url', ph: 'https://…' }), T('photo', 'Фото', { type: 'photo' }), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.his[0][0], shop: '', price: '', url: '', photo: '', done: false }) },
-  films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0 }) },
+  films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 }), T('poster', 'Постер', { type: 'photo' }), T('overview', 'Описание', { type: 'textarea' })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0, poster: '', overview: '' }) },
   lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: kindsOf(document.body.dataset.z).map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, who: curWho(), meta: '', done: false }) },
   prem: { t: 'Новая премьера', n: 'премьеру', f: () => [T('title', 'Название', { req: 1 }), T('date', 'Дата выхода', { type: 'date', req: 1 }), T('where', 'Где', { type: 'select', options: [['k', 'В кино'], ['o', 'Онлайн']] }), T('place', 'Платформа или кинотеатр')], mk: () => ({ date: isoD(today()), where: 'k', place: '', want: false, cal: false }) },
   places: { t: 'Новое место', n: 'место', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Заметка'), T('visited', 'Уже были', { type: 'check' }), T('date', 'Когда были', { type: 'date' })], mk: () => ({ note: '', visited: UI.placeTab === 'v', date: '' }) },
@@ -21,7 +21,7 @@ function commit() { persist(); render({ keep: true }); }
 const findIn = (arr, id) => arr.find((x) => x.id === id);
 
 /* ====== отрисовка ====== */
-const LABEL = { gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
+const LABEL = { market: 'Маркетплейс', recipes: 'Рецепты', random: 'Случайное', gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
 function route() { const p = location.hash.replace(/^#\/?/, '').split('/'); return { zone: p[0] || 'home', page: p[1] || '' }; }
 let lastKey = '', focusId = '';
 function render(o) {
@@ -32,7 +32,7 @@ function render(o) {
   const z = r.zone, pg = r.page;
   if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage('her') : pg === 'lists' ? listsPage('her') : pg === 'gifts' ? giftsPage('her') : herPage());
   else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'gifts' ? giftsPage('his') : pg === 'server' ? serverPage() : hisPage());
-  else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage, note: notesPage, us: usPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
+  else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage, note: notesPage, us: usPage, market: marketPage, recipes: recipesPage, random: randomPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
   else html = homePage();
   const same = key === lastKey;
   app.className = (same && o.keep ? 'noanim ' : '') + 'z-' + (z === 'home' ? 'home' : z);
@@ -209,7 +209,7 @@ document.addEventListener('touchcancel', endDrag, { passive: true });
 document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
-Object.assign(SCH, SCH2); Object.assign(QA, QA2); Object.assign(ACT, ACT2);
+Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3);
 load(); render(); NDS.init();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 

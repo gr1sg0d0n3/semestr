@@ -148,6 +148,8 @@ function migrate() {
     S.buys = [['Корм для кота', 1, 'b'], ['Подарок для мамы', 5, 'a'], ['Лампочки в коридор', 3, '']].map((x) => ({ id: uid(), name: x[0], when: d(x[1]), who: x[2], note: '', done: false }));
   }
   if (!S.notes) S.notes = {};
+  if (!S.market) S.market = [];
+  if (!S.recipes) S.recipes = [];
   if (!S.us) S.us = { since: '' };
   if (!S.p_a_gifts) S.p_a_gifts = [];
   if (!S.p_b_gifts) S.p_b_gifts = [];

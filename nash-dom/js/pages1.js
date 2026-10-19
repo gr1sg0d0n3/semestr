@@ -67,7 +67,7 @@ function hisSide(page) {
     '<div class="cap">Быстро</div>' + quick('Новая хотелка', 'add', 'data-k="hwishes"') + quick('Добавить в список', 'add', 'data-k="lists"') + quick('Выбрать фильм', 'pickFilm') + '<a class="rowi" href="#/his/server">' + ic('plus', 18, 2) + 'Проверить сервер</a>' +
     '<div class="sidefoot"><a class="rowi" href="#/home">' + ic('heart', 18) + 'Наш дом</a></div></aside>';
 }
-const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому'], ['buys', 'Покупки'], ['note', 'Заметка дня'], ['us', 'Мы вместе']];
+const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому'], ['buys', 'Покупки'], ['recipes', 'Рецепты'], ['market', 'Маркетплейс'], ['random', 'Случайное'], ['note', 'Заметка дня'], ['us', 'Мы вместе']];
 function tnav(page) {
   return '<nav class="tnav glass" aria-label="Общие разделы"><div class="tl">' + TNAV.map((t) => '<a href="#/tog/' + t[0] + '"' + (page === t[0] ? ' class="on"' : '') + '>' + t[1] + '</a>').join('') + '</div><div class="seg" aria-label="Чья половина"><a href="#/her">Её</a><a class="on" href="#/tog">Общее</a><a href="#/his">Его</a></div></nav>';
 }

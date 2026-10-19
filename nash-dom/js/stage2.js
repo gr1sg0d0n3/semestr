@@ -116,6 +116,8 @@ function searchIndex() {
   S.chores.forEach((x) => add('Дела по дому', '#/tog/chores', x.name));
   S.buys.forEach((x) => add('Покупки', '#/tog/buys', x.name, x.note));
   S.qs.forEach((x) => add('Вопрос дня', '#/tog/quest', x.text));
+  (S.recipes || []).forEach((x) => add('Рецепты', '#/tog/recipes', x.name, x.ing));
+  (S.market || []).forEach((x) => add('Маркетплейс', '#/tog/market', [x.shop, x.what].filter(Boolean).join(' '), x.point));
   S.study.forEach((s) => add('Учёба', '#/her/study', s.name));
   Object.keys(S.notes || {}).forEach((d) => ['a', 'b'].forEach((w) => add('Заметка дня', '#/tog/note', S.notes[d][w], fmtDL(d))));
   if (NDS.on) { const w = NDS.who, K = w === 'a' ? 'p_a_gifts' : 'p_b_gifts'; (S[K] || []).forEach((x) => add('Тайные подарки', w === 'a' ? '#/her/gifts' : '#/his/gifts', x.name, x.note)); }

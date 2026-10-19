@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Сервер «Наш дом»: синхронизация, фото, вход по коду из Telegram, уведомления.
 Только стандартная библиотека Python 3. Слушает 127.0.0.1, наружу смотрит nginx."""
-import hashlib, json, os, re, secrets, sqlite3, threading, time, urllib.request, urllib.parse
+import hashlib, json, os, re, secrets, sqlite3, sys, threading, time, urllib.request, urllib.parse
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
@@ -111,6 +111,10 @@ def bot_message(m):
         return reply('Код для входа: %s\nДействует 5 минут, подходит один раз.' % new_code(who, 'pair'))
     if cmd == '/invite' and who == 'b':
         return reply('Отправьте Кристине это сообщение, пусть откроет бота и нажмёт Start с кодом:\n/start %s\n(действует 24 часа)' % new_code('a', 'invite', 86400))
+    if cmd == '/check' and who == 'b':
+        ex = globals().get('status_extra')
+        reply('Проверяю источники, это займёт до полминуты…')
+        return reply('\n'.join('%s: %s' % kv for kv in ex()) if ex else 'Проверка недоступна')
     if cmd in ('/help', '/menu'):
         return reply('/code — код для входа на сайт\n/invite — пригласить Кристину (только Гриша)')
     hook = globals().get('bot_extra')
@@ -346,6 +350,9 @@ def digest(now):
                     lines.append('%s: %s' % (d['name'], 'сегодня' if n == 0 else 'завтра' if n == 1 else 'через неделю'))
             except Exception:
                 pass
+        hook = globals().get('digest_extra')
+        if hook:
+            lines += hook(who, today)
         if lines:
             notify('Сводка на сегодня:\n' + '\n'.join('• ' + x for x in lines), who=who)
 
@@ -353,7 +360,8 @@ def digest(now):
 def main():
     init()
     try:
-        import extras  # noqa: F401  (этапы 2-4 подключаются сюда)
+        import extras
+        extras.register(sys.modules[__name__])
     except ImportError:
         pass
     if TOKEN and not DEV:
