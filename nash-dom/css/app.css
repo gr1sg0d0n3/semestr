@@ -350,6 +350,7 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
   .mbtn{display:inline-flex}
   .mbar{padding-left:8px;padding-right:8px}
   .mbar .brand .lbl{display:none}
+  .mbar .brand{position:absolute;left:50%;top:env(safe-area-inset-top);transform:translateX(-50%);height:40px}
   .shell{display:block;padding:54px 0 24px;z-index:auto}
   .shell>.main{padding:0 16px;gap:16px}
   .hd{padding-top:10px}
