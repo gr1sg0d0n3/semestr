@@ -17,7 +17,7 @@ if [ "$MYIP" != "$DNSIP" ]; then echo "!! A-запись домена не со�
 
 echo "== 3. Пакеты"
 apt-get update -y -q
-DEBIAN_FRONTEND=noninteractive apt-get install -y -q nginx certbot python3-certbot-nginx git rsync
+DEBIAN_FRONTEND=noninteractive apt-get install -y -q tzdata nginx certbot python3-certbot-nginx git rsync
 
 echo "== 4. Файлы сайта"
 [ -d $SRC/.git ] && git -C $SRC pull -q || git clone -q --depth 1 https://github.com/gr1sg0d0n3/semestr $SRC

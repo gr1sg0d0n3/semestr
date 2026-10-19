@@ -4,14 +4,21 @@
 import hashlib, json, os, re, secrets, sqlite3, threading, time, urllib.request, urllib.parse
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from zoneinfo import ZoneInfo
+from datetime import timezone
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    ZoneInfo = None
 
 DATA = os.environ.get('NASHDOM_DATA', '/var/lib/nashdom')
 PORT = int(os.environ.get('NASHDOM_PORT', '8787'))
 TOKEN = os.environ.get('TG_TOKEN', '')
 SECRET = os.environ.get('SETUP_SECRET', '')
 DEV = os.environ.get('NASHDOM_DEV') == '1'
-TZ = ZoneInfo(os.environ.get('NASHDOM_TZ', 'Europe/Moscow'))
+try:
+    TZ = ZoneInfo(os.environ.get('NASHDOM_TZ', 'Europe/Moscow'))
+except Exception:  # нет базы часовых поясов: Москва без перехода на летнее время
+    TZ = timezone(timedelta(hours=3))
 PEOPLE = {'a': 'Кристина', 'b': 'Гриша'}
 PHOTOS = os.path.join(DATA, 'photos')
 os.makedirs(PHOTOS, exist_ok=True)
