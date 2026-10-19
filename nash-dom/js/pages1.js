@@ -1,5 +1,7 @@
 'use strict';
 /* ====== состояние интерфейса (не сохраняется) ====== */
+const myLists = (who, k) => S.lists.filter((l) => l.who === who && (!k || l.kind === k));
+const curWho = () => document.body.dataset.z === 'his' ? 'b' : 'a';
 const UI = { wishCat: 'all', listKind: 'w', filmTab: 'q', premTab: 'a', placeTab: 'h', menuSec: 'Завтрак', studyF: 'all', trip: '', pick: '', menuPick: '', edit: false };
 
 /* ====== общие кирпичики ====== */
@@ -47,18 +49,20 @@ function herSide(page) {
     sideItem('study', 'Учёба', '#/her/study', sc.done + '/' + sc.total, page === 'study') +
     sideItem('bag', 'Хотелки', '#/her/wish', wl, page === 'wish' && UI.wishCat === 'all', 'wishCat:all') +
     sideItem('spark', 'Красота', '#/her/wish', S.wishes.filter((w) => w.cat === 'cos' || w.cat === 'per').length, page === 'wish' && UI.wishCat === 'beauty', 'wishCat:beauty') +
-    sideItem('book', 'Книги и кино', '#/her/lists', S.lists.length, page === 'lists') +
+    sideItem('film', 'Кино', '#/her/lists', left(myLists('a', 'w')).length, page === 'lists' && UI.listKind === 'w', 'listKind:w') +
+    sideItem('book', 'Книги', '#/her/lists', left(myLists('a', 'r')).length, page === 'lists' && UI.listKind === 'r', 'listKind:r') +
     '<div class="cap">Быстро</div>' + quick('Добавить пункт учёбы', 'addItAny') + quick('Новая хотелка', 'add', 'data-k="wishes"') + quick('Добавить фильм', 'add', 'data-k="films"') +
     '<div class="sidefoot"><a class="rowi" href="#/home">' + ic('heart', 18) + 'Наш дом</a></div></aside>';
 }
 function hisSide(page) {
-  const c = (k) => left(S.lists.filter((l) => l.kind === k)).length;
+  const c = (k) => left(myLists('b', k)).length;
   return '<aside class="side glass" id="side" aria-label="Его разделы"><div class="who"><span class="av">' + ic('film', 20) + '</span>Гриша</div>' +
+    sideItem('bag', 'Хотелки', '#/his/wish', left(S.hwishes).length, page === 'wish') +
     sideItem('film', 'Смотреть', '#/his/lists', c('w'), page === 'lists' && UI.listKind === 'w', 'listKind:w') +
     sideItem('play', 'Играть', '#/his/lists', c('p'), page === 'lists' && UI.listKind === 'p', 'listKind:p') +
     sideItem('book', 'Читать', '#/his/lists', c('r'), page === 'lists' && UI.listKind === 'r', 'listKind:r') +
     sideItem('server', 'Сервер', '#/his/server', '', page === 'server') +
-    '<div class="cap">Быстро</div>' + quick('Добавить в список', 'add', 'data-k="lists"') + quick('Выбрать фильм', 'pickFilm') + '<a class="rowi" href="#/his/server">' + ic('plus', 18, 2) + 'Проверить сервер</a>' +
+    '<div class="cap">Быстро</div>' + quick('Новая хотелка', 'add', 'data-k="hwishes"') + quick('Добавить в список', 'add', 'data-k="lists"') + quick('Выбрать фильм', 'pickFilm') + '<a class="rowi" href="#/his/server">' + ic('plus', 18, 2) + 'Проверить сервер</a>' +
     '<div class="sidefoot"><a class="rowi" href="#/home">' + ic('heart', 18) + 'Наш дом</a></div></aside>';
 }
 const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому']];
@@ -77,10 +81,10 @@ const pinLink = (s) => '<a href="' + s.href + '">' + ic(s.icon, 20) + esc(s.k) +
 function homePage() {
   const sc = studyCount(), nx = nextStudy(), nd = nextDate();
   const wl = left(S.wishes).length;
-  const lw = left(S.lists.filter((l) => l.kind === 'w')).length, lp = left(S.lists.filter((l) => l.kind === 'p')).length;
+  const lw = left(myLists('b', 'w')).length, lp = left(myLists('b', 'p')).length, hw = left(S.hwishes).length;
   const films = left(S.films.filter((f) => !f.seen)).length, pl = S.places.filter((p) => p.visited).length;
-  const sideL = [['study', 'Учёба', sc.done + '/' + sc.total], ['bag', 'Хотелки', wl], ['spark', 'Красота', ''], ['book', 'Книги и кино', S.lists.length]].map((r, i) => '<div class="rowi' + (i === 0 ? ' on' : '') + '">' + ic(r[0], 20) + r[1] + '<span class="n">' + r[2] + '</span></div>').join('');
-  const sideR = [['film', 'Смотреть', lw], ['play', 'Играть', lp], ['book', 'Читать', left(S.lists.filter((l) => l.kind === 'r')).length], ['server', 'Сервер', '']].map((r, i) => '<div class="rowi' + (i === 0 ? ' on' : '') + '">' + ic(r[0], 20) + r[1] + '<span class="n">' + r[2] + '</span></div>').join('');
+  const sideL = [['study', 'Учёба', sc.done + '/' + sc.total], ['bag', 'Хотелки', wl], ['spark', 'Красота', ''], ['film', 'Кино', left(myLists('a', 'w')).length], ['book', 'Книги', left(myLists('a', 'r')).length]].map((r, i) => '<div class="rowi' + (i === 0 ? ' on' : '') + '">' + ic(r[0], 20) + r[1] + '<span class="n">' + r[2] + '</span></div>').join('');
+  const sideR = [['bag', 'Хотелки', hw], ['film', 'Смотреть', lw], ['play', 'Играть', lp], ['book', 'Читать', left(myLists('b', 'r')).length], ['server', 'Сервер', '']].map((r, i) => '<div class="rowi' + (i === 0 ? ' on' : '') + '">' + ic(r[0], 20) + r[1] + '<span class="n">' + r[2] + '</span></div>').join('');
   const hint = nx ? whenWord(nx.date, nx.time) : 'Всё сдано';
   const sub = nx ? TYPE_N[nx.type] + ': ' + nx.sub.name : 'Новых сроков нет';
   const ndTxt = nd ? esc(nd.d.name) + (nd.n === 0 ? ' сегодня' : ' через ' + nd.n + ' ' + plural(nd.n, 'день', 'дня', 'дней')) : 'Дат пока нет';
@@ -139,25 +143,29 @@ function wishArt(w) {
   if (w.cat === 'cos') return /помад/.test(n) ? 'lip' : /палет|тен/.test(n) ? 'pal' : /пудр|зеркал/.test(n) ? 'com' : /блеск/.test(n) ? 'gl' : ['lip', 'pal', 'com', 'gl'][w.id.charCodeAt(1) % 4];
   return 'gift';
 }
-function wishPage() {
-  const f = UI.wishCat, TL = ['#fbdce6', '#f9e3d8', '#fdeaf1', '#f3dbe8'];
-  let list = S.wishes.map((w, i) => ({ w, i })).filter((x) => f === 'all' || (f === 'beauty' ? x.w.cat === 'cos' || x.w.cat === 'per' : x.w.cat === f));
+function wishPage(zone) {
+  const her = zone !== 'his', K = her ? 'wishes' : 'hwishes', ARR = S[K], HC = ['all', 'tech', 'clo', 'oth'];
+  if (her ? HC.indexOf(UI.wishCat) > 0 : HC.indexOf(UI.wishCat) < 0) UI.wishCat = 'all';
+  const f = UI.wishCat, TL = zone === 'his' ? ['#e4e6ea', '#eceef1', '#dfe2e7', '#e8eaee'] : ['#fbdce6', '#f9e3d8', '#fdeaf1', '#f3dbe8'];
+  let list = ARR.map((w, i) => ({ w, i })).filter((x) => f === 'all' || (f === 'beauty' ? x.w.cat === 'cos' || x.w.cat === 'per' : x.w.cat === f));
   list.sort((a, b) => (a.w.done ? 1 : 0) - (b.w.done ? 1 : 0));
   const flt = (k, l, n) => '<button class="rowi' + (f === k ? ' on' : '') + '" data-act="wishCat" data-v="' + k + '" aria-pressed="' + (f === k) + '">' + l + '<span class="n">' + n + '</span></button>';
-  const cards = list.map((x, j) => '<article class="pc glass in ' + (x.w.done ? 'dn' : '') + '" style="--i:' + Math.min(j + 1, 8) + '"><div class="tile" style="background:' + TL[x.i % 4] + '">' + artSvg(wishArt(x.w)) + '</div><b>' + esc(x.w.name) + '</b><span class="m">' + esc([x.w.shop, x.w.price].filter(Boolean).join(' · ') || 'магазин и цена не указаны') + '</span><div class="pcb"><button class="buy ' + (x.w.done ? 'on' : '') + '" data-act="tg" data-k="wishes" data-id="' + x.w.id + '" aria-pressed="' + x.w.done + '">' + (x.w.done ? 'Куплено' : 'Отметить купленным') + '</button><button class="ib" data-act="ed" data-k="wishes" data-id="' + x.w.id + '" aria-label="Изменить">' + ic('pen', 18) + '</button></div></article>').join('');
-  const flts = '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', S.wishes.length) + flt('bag', 'Сумки', S.wishes.filter((w) => w.cat === 'bag').length) + flt('cos', 'Косметика', S.wishes.filter((w) => w.cat === 'cos').length) + flt('per', 'Парфюм', S.wishes.filter((w) => w.cat === 'per').length) + flt('beauty', 'Красота', S.wishes.filter((w) => w.cat === 'cos' || w.cat === 'per').length) + '</div>';
-  return flts + hd('Хотелки', 'Отметьте купленное, и оно уйдёт в конец списка', '<span class="btn main static">Осталось купить: ' + left(S.wishes).length + '</span>' + btn('Новая хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="wishes"' })) +
+  const cards = list.map((x, j) => '<article class="pc glass in ' + (x.w.done ? 'dn' : '') + '" style="--i:' + Math.min(j + 1, 8) + '"><div class="tile" style="background:' + TL[x.i % 4] + '">' + artSvg(wishArt(x.w)) + '</div><b>' + esc(x.w.name) + '</b><span class="m">' + esc([x.w.shop, x.w.price].filter(Boolean).join(' · ') || 'магазин и цена не указаны') + '</span><div class="pcb"><button class="buy ' + (x.w.done ? 'on' : '') + '" data-act="tg" data-k="' + K + '" data-id="' + x.w.id + '" aria-pressed="' + x.w.done + '">' + (x.w.done ? 'Куплено' : 'Отметить купленным') + '</button><button class="ib" data-act="ed" data-k="' + K + '" data-id="' + x.w.id + '" aria-label="Изменить">' + ic('pen', 18) + '</button></div></article>').join('');
+  const flts = !her ? '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', ARR.length) + flt('tech', 'Техника', ARR.filter((w) => w.cat === 'tech').length) + flt('clo', 'Одежда', ARR.filter((w) => w.cat === 'clo').length) + flt('oth', 'Другое', ARR.filter((w) => w.cat === 'oth').length) + '</div>' : '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', ARR.length) + flt('bag', 'Сумки', ARR.filter((w) => w.cat === 'bag').length) + flt('cos', 'Косметика', ARR.filter((w) => w.cat === 'cos').length) + flt('per', 'Парфюм', ARR.filter((w) => w.cat === 'per').length) + flt('beauty', 'Красота', ARR.filter((w) => w.cat === 'cos' || w.cat === 'per').length) + '</div>';
+  return flts + hd('Хотелки', 'Отметьте купленное, и оно уйдёт в конец списка', '<span class="btn main static">Осталось купить: ' + left(ARR).length + '</span>' + btn('Новая хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="' + K + '"' })) +
     (cards ? '<div class="wgrid">' + cards + '</div>' : '<section class="glass wd in">' + empty('Здесь пока ничего нет. Добавьте первую хотелку.') + '</section>');
 }
 
 /* ====== списки (смотреть, играть, читать) ====== */
 const KINDS = [['w', 'Смотреть', 'film'], ['p', 'Играть', 'play'], ['r', 'Читать', 'book']];
+const kindsOf = (zone) => zone === 'her' ? KINDS.filter((t) => t[0] !== 'p') : KINDS;
 function listsPage(zone) {
-  const k = UI.listKind, items = S.lists.filter((l) => l.kind === k);
-  const tabs = '<div class="tabs" role="group" aria-label="Раздел">' + KINDS.map((t) => '<button class="tab' + (k === t[0] ? ' on' : '') + '" data-act="listKind" data-v="' + t[0] + '" aria-pressed="' + (k === t[0]) + '">' + t[1] + '</button>').join('') + '</div>';
+  const kinds = kindsOf(zone); if (!kinds.some((t) => t[0] === UI.listKind)) UI.listKind = kinds[0][0];
+  const k = UI.listKind, items = myLists(zone === 'her' ? 'a' : 'b', k);
+  const tabs = '<div class="tabs" role="group" aria-label="Раздел">' + kinds.map((t) => '<button class="tab' + (k === t[0] ? ' on' : '') + '" data-act="listKind" data-v="' + t[0] + '" aria-pressed="' + (k === t[0]) + '">' + t[1] + '</button>').join('') + '</div>';
   const ph = { w: 'Новый фильм или сериал', p: 'Новая игра', r: 'Новая книга' }[k];
   const rows = items.map((l) => '<div class="li ' + (l.done ? 'dn' : '') + '"><button class="ck" data-act="tg" data-k="lists" data-id="' + l.id + '" aria-pressed="' + l.done + '" aria-label="Отметить">' + (l.done ? ic('check', 14, 3) : '') + '</button><div class="t">' + esc(l.title) + '</div><span class="m">' + esc(l.meta) + '</span><button class="ib" data-act="ed" data-k="lists" data-id="' + l.id + '" aria-label="Изменить">' + ic('pen', 18) + '</button></div>').join('');
-  return hd(zone === 'her' ? 'Книги и кино' : 'Смотреть, играть, читать', 'Нажмите на кружок, когда готово. Карандаш меняет или удаляет запись.', '') +
+  return hd(zone === 'her' ? 'Кино и книги' : 'Смотреть, играть, читать', 'Нажмите на кружок, когда готово. Карандаш меняет или удаляет запись.', '') +
     '<section class="glass box in" style="--i:1">' + tabs + '<div class="k2">' + left(items).length + ' в списке, ' + (items.length - left(items).length) + ' готово</div>' + (rows || empty('Список пуст. Добавьте первое название.')) +
     '<form class="qa" data-form="qa" data-k="lists"><label class="vh" for="qa1">' + ph + '</label><input id="qa1" name="v" placeholder="' + ph + '" autocomplete="off"><button class="btn main" type="submit">Добавить</button></form></section>';
 }

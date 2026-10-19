@@ -3,8 +3,9 @@
 const T = (k, label, o) => Object.assign({ k, label }, o || {});
 const SCH = {
   wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: CATS }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: 'bag', shop: '', price: '', done: false }) },
+  hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: [['tech', 'Техника'], ['clo', 'Одежда'], ['oth', 'Другое']] }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: 'tech', shop: '', price: '', done: false }) },
   films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0 }) },
-  lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: KINDS.map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, meta: '', done: false }) },
+  lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: kindsOf(document.body.dataset.z).map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, who: curWho(), meta: '', done: false }) },
   prem: { t: 'Новая премьера', n: 'премьеру', f: () => [T('title', 'Название', { req: 1 }), T('date', 'Дата выхода', { type: 'date', req: 1 }), T('where', 'Где', { type: 'select', options: [['k', 'В кино'], ['o', 'Онлайн']] }), T('place', 'Платформа или кинотеатр')], mk: () => ({ date: isoD(today()), where: 'k', place: '', want: false, cal: false }) },
   places: { t: 'Новое место', n: 'место', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Заметка'), T('visited', 'Уже были', { type: 'check' }), T('date', 'Когда были', { type: 'date' })], mk: () => ({ note: '', visited: UI.placeTab === 'v', date: '' }) },
   dishes: { t: 'Новое блюдо', n: 'блюдо', f: () => [T('name', 'Название', { req: 1 }), T('note', 'Описание'), T('sec', 'Раздел', { type: 'select', options: S.secs.map((s) => [s, s]) })], mk: () => ({ note: '', sec: UI.menuSec, plan: false }) },
@@ -14,7 +15,7 @@ const SCH = {
   qs: { t: 'Новый вопрос', n: 'вопрос', f: () => [T('text', 'Текст вопроса', { type: 'textarea', req: 1 })], mk: () => ({}) },
   chores: { t: 'Новое дело', n: 'дело', f: () => [T('name', 'Что сделать', { req: 1 }), T('freq', 'Как часто', { ph: 'Например, раз в неделю' }), T('who', 'На ком', { type: 'select', options: [['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Сделано', { type: 'check' })], mk: () => ({ freq: '', who: 'a', done: false }) },
 };
-const FEM = { wishes: 1, prem: 1, dates: 1, trips: 1, shop: 1, places: 0 };
+const FEM = { wishes: 1, hwishes: 1, prem: 1, dates: 1, trips: 1, shop: 1, places: 0 };
 function commit() { persist(); render({ keep: true }); }
 const findIn = (arr, id) => arr.find((x) => x.id === id);
 
@@ -28,8 +29,8 @@ function render(o) {
   const sy = window.scrollY, sideY = ($('#side') || {}).scrollTop || 0, keepFocus = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.ans : '';
   let html;
   const z = r.zone, pg = r.page;
-  if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage() : pg === 'lists' ? listsPage('her') : herPage());
-  else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'lists' ? listsPage('his') : pg === 'server' ? serverPage() : hisPage());
+  if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage('her') : pg === 'lists' ? listsPage('her') : herPage());
+  else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'server' ? serverPage() : hisPage());
   else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
   else html = homePage();
   const same = key === lastKey;
@@ -114,7 +115,7 @@ function itForm(s, it) {
 
 /* быстрые добавления из строки под списком */
 const QA = {
-  lists: (v) => S.lists.push({ id: uid(), kind: UI.listKind, title: v, meta: '', done: false }),
+  lists: (v) => S.lists.push({ id: uid(), who: curWho(), kind: UI.listKind, title: v, meta: '', done: false }),
   films: (v) => S.films.push({ id: uid(), title: v, note: '', seen: false, ra: 0, rb: 0 }),
   places: (v, f) => S.places.push({ id: uid(), name: v, note: '', visited: f.dataset.visited === '1', date: '' }),
   dishes: (v, f) => S.dishes.push({ id: uid(), sec: f.dataset.sec, name: v, note: '', plan: false }),

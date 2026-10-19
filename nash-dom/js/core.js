@@ -134,9 +134,19 @@ function seed() {
   };
 }
 let S;
+function migrate() {
+  if (!S.pins) S.pins = JSON.parse(JSON.stringify(PIN_DEF));
+  if (!S.pins.her.includes('lr') && !S.migLr) { S.pins.her.splice(3, 0, 'lr'); S.migLr = 1; }
+  if (!S.lists.every((l) => l.who)) {
+    S.lists.forEach((l) => { if (!l.who) l.who = 'b'; });
+    if (!S.lists.some((l) => l.who === 'a')) [['w', 'Название фильма', '[год]', false], ['w', 'Название сериала', '[год]', false], ['r', 'Название книги', '[автор]', false], ['r', 'Название книги', '[автор]', true]].forEach((x) => S.lists.push({ id: uid(), who: 'a', kind: x[0], title: x[1], meta: x[2], done: x[3] }));
+  }
+  if (!S.hwishes) S.hwishes = [['Наушники', 'tech'], ['Механическая клавиатура', 'tech'], ['Худи', 'clo'], ['Кроссовки', 'clo'], ['Рюкзак', 'oth'], ['Подарок', 'oth']].map((x) => ({ id: uid(), name: x[0], cat: x[1], shop: '', price: '', done: false }));
+  if (!S.pins.his.includes('hwishes') && !S.migHw) { S.pins.his.splice(1, 0, 'hwishes'); S.migHw = 1; }
+}
 function load() {
-  try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); if (S && S.v === 1) { if (!S.pins) S.pins = JSON.parse(JSON.stringify(PIN_DEF)); return; } } } catch (e) { /* пусто */ }
-  S = seed(); S.pins = JSON.parse(JSON.stringify(PIN_DEF)); persist();
+  try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); if (S && S.v === 1) { migrate(); return; } } } catch (e) { /* пусто */ }
+  S = seed(); migrate(); persist();
 }
 let memStore = null;
 function persist() {
