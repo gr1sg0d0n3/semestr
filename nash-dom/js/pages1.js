@@ -135,7 +135,6 @@ function studyPage() {
 }
 
 /* ====== хотелки ====== */
-const CATS = [['bag', 'Сумки'], ['cos', 'Косметика'], ['per', 'Парфюм'], ['oth', 'Другое']];
 function wishArt(w) {
   const n = w.name.toLowerCase();
   if (w.cat === 'bag') return /тоут|шоппер|сумка-шоп/.test(n) || w.id.charCodeAt(0) % 2 ? 'tote' : 'bag';
@@ -144,15 +143,15 @@ function wishArt(w) {
   return 'gift';
 }
 function wishPage(zone) {
-  const her = zone !== 'his', K = her ? 'wishes' : 'hwishes', ARR = S[K], HC = ['all', 'tech', 'clo', 'oth'];
-  if (her ? HC.indexOf(UI.wishCat) > 0 : HC.indexOf(UI.wishCat) < 0) UI.wishCat = 'all';
+  const her = zone !== 'his', K = her ? 'wishes' : 'hwishes', ARR = S[K], CL = S.cats[her ? 'her' : 'his'], hasBeauty = her && CL.some((c) => c[0] === 'cos') && CL.some((c) => c[0] === 'per');
+  if (UI.wishCat !== 'all' && !(UI.wishCat === 'beauty' && hasBeauty) && !CL.some((c) => c[0] === UI.wishCat)) UI.wishCat = 'all';
   const f = UI.wishCat, TL = zone === 'his' ? ['#e4e6ea', '#eceef1', '#dfe2e7', '#e8eaee'] : ['#fbdce6', '#f9e3d8', '#fdeaf1', '#f3dbe8'];
   let list = ARR.map((w, i) => ({ w, i })).filter((x) => f === 'all' || (f === 'beauty' ? x.w.cat === 'cos' || x.w.cat === 'per' : x.w.cat === f));
   list.sort((a, b) => (a.w.done ? 1 : 0) - (b.w.done ? 1 : 0));
   const flt = (k, l, n) => '<button class="rowi' + (f === k ? ' on' : '') + '" data-act="wishCat" data-v="' + k + '" aria-pressed="' + (f === k) + '">' + l + '<span class="n">' + n + '</span></button>';
   const cards = list.map((x, j) => '<article class="pc glass in ' + (x.w.done ? 'dn' : '') + '" style="--i:' + Math.min(j + 1, 8) + '"><div class="tile" style="background:' + TL[x.i % 4] + '">' + artSvg(wishArt(x.w)) + '</div><b>' + esc(x.w.name) + '</b><span class="m">' + esc([x.w.shop, x.w.price].filter(Boolean).join(' · ') || 'магазин и цена не указаны') + '</span><div class="pcb"><button class="buy ' + (x.w.done ? 'on' : '') + '" data-act="tg" data-k="' + K + '" data-id="' + x.w.id + '" aria-pressed="' + x.w.done + '">' + (x.w.done ? 'Куплено' : 'Отметить купленным') + '</button><button class="ib" data-act="ed" data-k="' + K + '" data-id="' + x.w.id + '" aria-label="Изменить">' + ic('pen', 18) + '</button></div></article>').join('');
-  const flts = !her ? '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', ARR.length) + flt('tech', 'Техника', ARR.filter((w) => w.cat === 'tech').length) + flt('clo', 'Одежда', ARR.filter((w) => w.cat === 'clo').length) + flt('oth', 'Другое', ARR.filter((w) => w.cat === 'oth').length) + '</div>' : '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', ARR.length) + flt('bag', 'Сумки', ARR.filter((w) => w.cat === 'bag').length) + flt('cos', 'Косметика', ARR.filter((w) => w.cat === 'cos').length) + flt('per', 'Парфюм', ARR.filter((w) => w.cat === 'per').length) + flt('beauty', 'Красота', ARR.filter((w) => w.cat === 'cos' || w.cat === 'per').length) + '</div>';
-  return flts + hd('Хотелки', 'Отметьте купленное, и оно уйдёт в конец списка', '<span class="btn main static">Осталось купить: ' + left(ARR).length + '</span>' + btn('Новая хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="' + K + '"' })) +
+  const flts = '<div class="subfilter glass in"><div class="cap">Категории</div>' + flt('all', 'Всё', ARR.length) + CL.map((c) => flt(c[0], esc(c[1]), ARR.filter((x) => x.cat === c[0]).length)).join('') + (hasBeauty ? flt('beauty', 'Красота', ARR.filter((x) => x.cat === 'cos' || x.cat === 'per').length) : '') + '</div>';
+  return flts + hd('Хотелки', 'Отметьте купленное, и оно уйдёт в конец списка', '<span class="btn main static">Осталось купить: ' + left(ARR).length + '</span>' + btn('Новая хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="' + K + '"' }) + btn('Категории', 'catEdit', { c: 'sm', d: 'data-z="' + (her ? 'her' : 'his') + '"' })) +
     (cards ? '<div class="wgrid">' + cards + '</div>' : '<section class="glass wd in">' + empty('Здесь пока ничего нет. Добавьте первую хотелку.') + '</section>');
 }
 

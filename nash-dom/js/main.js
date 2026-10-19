@@ -2,8 +2,8 @@
 /* ====== схемы записей: что можно добавлять и менять ====== */
 const T = (k, label, o) => Object.assign({ k, label }, o || {});
 const SCH = {
-  wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: CATS }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: 'bag', shop: '', price: '', done: false }) },
-  hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: [['tech', 'Техника'], ['clo', 'Одежда'], ['oth', 'Другое']] }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: 'tech', shop: '', price: '', done: false }) },
+  wishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, сумка' }), T('cat', 'Категория', { type: 'select', options: S.cats.her }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.her[0][0], shop: '', price: '', done: false }) },
+  hwishes: { t: 'Новая хотелка', n: 'хотелку', f: () => [T('name', 'Что хочется', { req: 1, ph: 'Например, наушники' }), T('cat', 'Категория', { type: 'select', options: S.cats.his }), T('shop', 'Где купить'), T('price', 'Цена'), T('done', 'Уже куплено', { type: 'check' })], mk: () => ({ cat: S.cats.his[0][0], shop: '', price: '', done: false }) },
   films: { t: 'Новый фильм', n: 'фильм', f: () => [T('title', 'Название', { req: 1 }), T('note', 'Заметка', { ph: 'Например, вечер на двоих' }), T('seen', 'Уже посмотрели', { type: 'check' }), T('ra', 'Её оценка (0–10)', { type: 'number', max: 10 }), T('rb', 'Его оценка (0–10)', { type: 'number', max: 10 })], mk: () => ({ note: '', seen: false, ra: 0, rb: 0 }) },
   lists: { t: 'Новая запись', n: 'запись', f: () => [T('title', 'Название', { req: 1 }), T('kind', 'Раздел', { type: 'select', options: kindsOf(document.body.dataset.z).map((k) => [k[0], k[1]]) }), T('meta', 'Год, платформа или автор'), T('done', 'Готово', { type: 'check' })], mk: () => ({ kind: UI.listKind, who: curWho(), meta: '', done: false }) },
   prem: { t: 'Новая премьера', n: 'премьеру', f: () => [T('title', 'Название', { req: 1 }), T('date', 'Дата выхода', { type: 'date', req: 1 }), T('where', 'Где', { type: 'select', options: [['k', 'В кино'], ['o', 'Онлайн']] }), T('place', 'Платформа или кинотеатр')], mk: () => ({ date: isoD(today()), where: 'k', place: '', want: false, cal: false }) },
@@ -56,6 +56,7 @@ const ACT = {
   },
   data() { openData(); },
   pinEdit(el) { pinEdit(el.dataset.z); },
+  catEdit(el) { catEdit(el.dataset.z); },
   add(el) {
     const k = el.dataset.k, sc = SCH[k];
     openForm({ title: sc.t, fields: sc.f(), values: sc.mk(), save: 'Добавить', onSave(v) {
@@ -207,3 +208,27 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigato
 
 /* без масштабирования щипком и двойным касанием (iOS) */
 ['gesturestart','gesturechange','gestureend'].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false }); });
+
+/* ====== категории хотелок ====== */
+function catEdit(z) {
+  const K = z === 'her' ? 'wishes' : 'hwishes', dlg = $('#dlg');
+  const row = (c) => '<div class="pr" data-id="' + esc(c[0]) + '"><input class="cin" value="' + esc(c[1]) + '" aria-label="Название категории" maxlength="30">' + (c[0] === 'oth' ? '' : '<button type="button" class="ib" data-del aria-label="Удалить категорию">' + ic('trash', 18) + '</button>') + '</div>';
+  dlg.innerHTML = '<div class="df"><h2>Категории хотелок</h2><p class="dn2">Меняйте названия, добавляйте новые. При удалении записи переходят в «Другое».</p><div id="cl">' + S.cats[z].map(row).join('') + '</div><div class="qa"><input id="cnew" placeholder="Новая категория, например «Одежда»" autocomplete="off"><button type="button" class="btn" data-ca="add">Добавить</button></div><div class="da"><span class="sp"></span><button type="button" class="btn" data-ca="x">Отмена</button><button type="button" class="btn main" data-ca="ok">Сохранить</button></div></div>';
+  const addRow = () => { const inp = $('#cnew'), v = inp.value.trim(); if (!v) { inp.focus(); return; } $('#cl').insertAdjacentHTML('beforeend', row(['n' + uid(), v])); inp.value = ''; };
+  dlg.onclick = (e) => {
+    const d = e.target.closest('[data-del]'); if (d) { d.closest('.pr').remove(); return; }
+    const a = e.target.closest('[data-ca]'); if (!a) return;
+    if (a.dataset.ca === 'add') addRow();
+    if (a.dataset.ca === 'x') dlg.close();
+    if (a.dataset.ca === 'ok') {
+      if ($('#cnew').value.trim()) addRow();
+      const rows = $$('#cl .pr').map((r) => [r.dataset.id, $('input', r).value.trim() || 'Без названия']);
+      if (!rows.some((r) => r[0] === 'oth')) rows.push(['oth', 'Другое']);
+      const ids = rows.map((r) => r[0]);
+      S[K].forEach((w) => { if (ids.indexOf(w.cat) < 0) w.cat = 'oth'; });
+      S.cats[z] = rows; dlg.close(); commit(); toast('Категории сохранены');
+    }
+  };
+  dlg.onkeydown = (e) => { if (e.key === 'Enter' && e.target.id === 'cnew') { e.preventDefault(); $('[data-ca=add]').click(); } };
+  dlg.showModal();
+}
