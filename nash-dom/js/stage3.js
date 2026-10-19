@@ -23,9 +23,9 @@ function marketPage() {
       m.until ? '<div class="mu' + (hot ? ' hot' : '') + '">' + (n < 0 ? 'срок хранения вышел ' : 'хранится до ') + fmtD(m.until) + '</div>' : '',
       m.when ? '<div class="mr">' + ic('bell', 15) + 'напомню ' + fmtD(m.when) + (m.time ? ' в ' + esc(m.time) : '') + '</div>' : ''].join('');
     return '<article class="pvz ' + (m.done ? 'dn' : '') + '"><div class="pvzh">' + ckb('market', m.id, m.done) + '<span class="pill">' + esc(m.shop || 'Заказ') + '</span><span class="sp"></span><span class="who2 ' + (m.who || 'c') + ' st">' + (m.who ? PEOPLE[m.who] : 'Кто угодно') + '</span>' + pen('market', m.id) + '</div>' +
-      '<button class="mcode" data-act="copy" data-v="' + esc(m.code) + '" aria-label="Скопировать код">' + (esc(m.code) || '— — —') + '<span>' + ic('copy', 16) + 'скопировать</span></button><div class="pvzb">' + lines + '</div></article>';
+      (m.img ? '<button class="qrb" data-act="imgView" data-src="' + esc(m.img) + '" aria-label="Показать QR или штрих-код"><img src="' + esc(m.img) + '" alt="QR или штрих-код"><span>' + ic('search', 15) + 'показать крупно</span></button>' : '') + (m.code ? '<button class="mcode" data-act="copy" data-v="' + esc(m.code) + '" aria-label="Скопировать код">' + esc(m.code) + '<span>' + ic('copy', 16) + 'скопировать</span></button>' : '') + '<div class="pvzb">' + lines + '</div></article>';
   }).join('');
-  return th('Маркетплейс', 'Коды получения заказов. Перешлите сообщение магазина боту в Telegram, и заказ появится здесь сам.') +
+  return th('Маркетплейс', 'Коды получения заказов. Перешлите боту в Telegram сообщение магазина или скриншот с QR-кодом, и заказ появится здесь сам.') +
     '<div class="mgrid in" style="--i:1">' + (rows || '<section class="glass box">' + empty('Заказов нет.') + '</section>') + '</div>' +
     '<section class="glass box in" style="--i:2;margin-top:18px"><h2>Добавить заказ</h2>' + qaForm('market', 'Код получения') + '<div class="acts" style="margin-top:12px">' + btn('Заказ с подробностями', 'add', { i: 'plus', w: 2, d: 'data-k="market"' }) + btn('Убрать полученные', 'clearMarket', { c: 'sm' }) + '</div><p class="note">Время и дату напоминания задайте через карандаш: бот пришлёт код в этот момент.</p></section>';
 }
@@ -130,7 +130,7 @@ function openFilmFind() {
 
 /* ---------- схемы, действия, закрепы ---------- */
 const SCH3 = {
-  market: { t: 'Новый заказ', n: 'заказ', f: () => [T('shop', 'Магазин', { type: 'select', options: [['', 'Не указан']].concat(SHOPN.map((s) => [s, s])) }), T('code', 'Код получения', { req: 1 }), T('what', 'Что за заказ', { ph: 'Например, кроссовки' }), T('point', 'Пункт выдачи', { ph: 'Адрес' }), T('until', 'Хранится до', { type: 'date' }), T('when', 'Напомнить в дату', { type: 'date' }), T('time', 'Во сколько', { type: 'time' }), T('who', 'Кто забирает', { type: 'select', options: [['', 'Кто угодно'], ['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Получено', { type: 'check' })], mk: () => ({ shop: '', code: '', what: '', point: '', until: '', when: '', time: '', who: '', note: '', done: false }) },
+  market: { t: 'Новый заказ', n: 'заказ', f: () => [T('shop', 'Магазин', { type: 'select', options: [['', 'Не указан']].concat(SHOPN.map((s) => [s, s])) }), T('code', 'Код получения (если есть цифрами)'), T('img', 'QR или штрих-код (картинка)', { type: 'photo', px: 1400, q: 0.88 }), T('what', 'Что за заказ', { ph: 'Например, кроссовки' }), T('point', 'Пункт выдачи', { ph: 'Адрес' }), T('until', 'Хранится до', { type: 'date' }), T('when', 'Напомнить в дату', { type: 'date' }), T('time', 'Во сколько', { type: 'time' }), T('who', 'Кто забирает', { type: 'select', options: [['', 'Кто угодно'], ['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Получено', { type: 'check' })], mk: () => ({ shop: '', code: '', img: '', what: '', point: '', until: '', when: '', time: '', who: '', note: '', done: false }) },
   recipes: { t: 'Новый рецепт', n: 'рецепт', f: () => [T('name', 'Название', { req: 1 }), T('time', 'Время готовки', { ph: 'Например, 40 минут' }), T('ing', 'Продукты (по одному в строке)', { type: 'textarea', ph: 'Паста — 200 г' }), T('steps', 'Шаги (по одному в строке)', { type: 'textarea' }), T('photo', 'Фото', { type: 'photo' })], mk: () => ({ time: '', ing: '', steps: '', photo: '', src: '' }) },
 };
 const QA3 = {
@@ -139,6 +139,7 @@ const QA3 = {
 };
 const ACT3 = {
   copy(el) { copyText(el.dataset.v).then(() => toast('Код скопирован')); },
+  imgView(el) { const d = $('#dlg'); d.innerHTML = '<div class="imgv"><img src="' + esc(el.dataset.src) + '" alt="Код получения"><p>Покажите на ПВЗ. Яркость экрана лучше выставить на максимум.</p><button type="button" class="btn" data-dact="cancel">Закрыть</button></div>'; d.onclick = (e) => { if (e.target.closest('[data-dact=cancel]') || e.target.tagName === 'IMG') d.close(); }; d.showModal(); },
   clearMarket() { S.market = S.market.filter((m) => !m.done); commit(); toast('Полученные убраны'); },
   recipeOpen(el) { UI.recipe = el.dataset.id || ''; commit(); },
   recipeShop(el) { const r = S.recipes.find((x) => x.id === el.dataset.id); if (r) recipeToShop(r); },

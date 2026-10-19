@@ -1,5 +1,5 @@
 """Этап 3: кино (TMDB + Кинопоиск), книги (Open Library), рецепты (TheMealDB), маркетплейс (коды ПВЗ)."""
-import hashlib, json, os, random, re, time, urllib.parse, urllib.request
+import hashlib, json, os, random, re, shutil, subprocess, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -269,17 +269,97 @@ def kv_put(k, v):
         c = A.db(); c.execute('INSERT OR REPLACE INTO kv VALUES(?,?,?)', (k, json.dumps(v, ensure_ascii=False, separators=(',', ':')), int(time.time() * 1000))); c.commit(); c.close()
 
 
+def tg_file(file_id):
+    r = A.tg('getFile', file_id=file_id)
+    if not r or not r.get('ok'):
+        return b''
+    try:
+        return http('https://api.telegram.org/file/bot%s/%s' % (A.TOKEN, r['result']['file_path']), timeout=30)
+    except Exception:
+        return b''
+
+
+def save_image(b):
+    ext = 'jpg' if b[:3] == b'\xff\xd8\xff' else 'png' if b[:8] == b'\x89PNG\r\n\x1a\n' else ''
+    if not ext or len(b) > 6_000_000:
+        return '', ''
+    name = os.urandom(16).hex() + '.' + ext
+    path = os.path.join(A.PHOTOS, name)
+    with open(path, 'wb') as f:
+        f.write(b)
+    return '/photos/' + name, path
+
+
+def decode_codes(path):
+    """Считывает QR и штрих-коды программой zbarimg (пакет zbar-tools), если она установлена."""
+    exe = shutil.which('zbarimg')
+    if not exe:
+        return []
+    try:
+        out = subprocess.run([exe, '--quiet', '--raw', path], capture_output=True, text=True, timeout=15).stdout
+    except Exception:
+        return []
+    return [x.strip() for x in out.splitlines() if x.strip()]
+
+
 def bot_extra(m, who, reply):
     text = (m.get('text') or m.get('caption') or '').strip()
-    if not text:
-        return
     now = datetime.now(A.TZ)
-    p = parse_pickup(text, now)
-    if not p['code']:
-        return reply('Не нашёл в сообщении код получения. Добавьте заказ вручную на сайте: Общее → Маркетплейс.')
-    item = {'id': 'm' + os.urandom(5).hex(), 'shop': p['shop'], 'code': p['code'], 'what': '', 'point': p['point'], 'until': p['until'], 'when': '', 'time': '', 'who': who, 'note': re.sub(r'\s+', ' ', text)[:240], 'done': False}
+    img, decoded = '', []
+    fid = ''
+    if m.get('photo'):
+        fid = max(m['photo'], key=lambda s: s.get('file_size', 0) or s.get('width', 0))['file_id']
+    elif (m.get('document') or {}).get('mime_type', '').startswith('image/'):
+        fid = m['document']['file_id']
+    if fid:
+        url, path = save_image(tg_file(fid))
+        if url:
+            img = url; decoded = decode_codes(path)
+    p = parse_pickup(text, now) if text else {'code': '', 'shop': '', 'until': '', 'point': ''}
+    code = p['code']
+    for d in decoded:  # цифровой код из штрих-кода или QR
+        if not code and re.fullmatch(r'[\dA-Za-z\-]{4,24}', d):
+            code = d
+    if not code and not img:
+        if text:
+            return reply('Не нашёл в сообщении код получения. Пришлите скриншот или фото с QR-кодом, либо добавьте заказ вручную на сайте: Общее → Маркетплейс.')
+        return
+    item = {'id': 'm' + os.urandom(5).hex(), 'shop': p['shop'], 'code': code, 'what': '', 'point': p['point'], 'until': p['until'], 'when': '', 'time': '', 'who': who, 'note': re.sub(r'\s+', ' ', text)[:240], 'img': img, 'done': False}
     lst = kv_get('market', []); lst.append(item); kv_put('market', lst)
-    reply('Добавил в Маркетплейс: %s, код %s%s. Забирает: %s. Время напоминания и подробности можно поправить на сайте.' % (p['shop'] or 'заказ', p['code'], (', хранится до ' + p['until']) if p['until'] else '', A.PEOPLE[who]))
+    parts = ['Добавил в Маркетплейс: %s' % (p['shop'] or 'заказ')]
+    if code:
+        parts.append('код %s' % code)
+    if img:
+        parts.append('картинка с кодом сохранена' + (', QR/штрих-код считан' if decoded else (', QR/штрих-код автоматически не считался, но на ПВЗ можно показать саму картинку' if shutil.which('zbarimg') else '')))
+    if p['until']:
+        parts.append('хранится до ' + p['until'])
+    reply(', '.join(parts) + '. Забирает: %s. Время напоминания и подробности можно поправить на сайте.' % A.PEOPLE[who])
+
+
+def send_photo(chat, path, caption):
+    b = '----nd' + os.urandom(8).hex()
+    parts = []
+    for k, v in (('chat_id', str(chat)), ('caption', caption[:900])):
+        parts.append(('--%s\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n' % (b, k, v)).encode())
+    with open(path, 'rb') as f:
+        data = f.read()
+    parts.append(('--%s\r\nContent-Disposition: form-data; name="photo"; filename="code.%s"\r\nContent-Type: application/octet-stream\r\n\r\n' % (b, path.rsplit('.', 1)[-1])).encode() + data + b'\r\n')
+    parts.append(('--%s--\r\n' % b).encode())
+    try:
+        http('https://api.telegram.org/bot%s/sendPhoto' % A.TOKEN, {'Content-Type': 'multipart/form-data; boundary=' + b}, b''.join(parts), 30)
+    except Exception as e:
+        print('sendPhoto error', e, flush=True)
+
+
+def notify_order(txt, who, img):
+    A.notify(txt, who=who)
+    if img and A.TOKEN and not A.DEV:
+        path = os.path.join(A.PHOTOS, os.path.basename(img))
+        if os.path.exists(path):
+            c = A.db(); rows = c.execute('SELECT chat, who FROM users').fetchall(); c.close()
+            for r in rows:
+                if who is None or r['who'] == who:
+                    send_photo(r['chat'], path, 'Код для получения')
 
 
 def tick_extra(now):
@@ -296,8 +376,8 @@ def tick_extra(now):
         sig = '%s|%s|%s' % (it['id'], it['when'], it.get('time', ''))
         if now >= dt and now - dt < timedelta(hours=6) and sig not in sent:
             sent.add(sig); changed = True
-            txt = 'Пора забрать заказ: %s%s\nКод: %s%s%s' % (it.get('shop') or 'ПВЗ', (' — ' + it['what']) if it.get('what') else '', it.get('code', ''), ('\nПункт: ' + it['point']) if it.get('point') else '', ('\nХранится до ' + it['until']) if it.get('until') else '')
-            A.notify(txt, who=it.get('who') or None)
+            txt = 'Пора забрать заказ: %s%s\n%s%s%s' % (it.get('shop') or 'ПВЗ', (' — ' + it['what']) if it.get('what') else '', ('Код: ' + it['code']) if it.get('code') else 'Код во вложении',  ('\nПункт: ' + it['point']) if it.get('point') else '', ('\nХранится до ' + it['until']) if it.get('until') else '')
+            notify_order(txt, it.get('who') or None, it.get('img', ''))
     if changed:
         A.meta_set('mk_sent', json.dumps(sorted(sent)[-300:]))
 

@@ -210,17 +210,17 @@ function normUrl(u) {
   if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u.replace(/^\/+/, '');
   return /^https?:\/\/[^\s]+$/i.test(u) ? u : '';
 }
-function shrinkImg(file, cb) {
+function shrinkImg(file, cb, px, qual) {
   const r = new FileReader();
   r.onerror = () => cb('');
   r.onload = () => {
     const im = new Image();
     im.onerror = () => cb('');
     im.onload = () => {
-      const m = 520, k = Math.min(1, m / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      const m = px || 520, k = Math.min(1, m / Math.max(im.width, im.height)), c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
       const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
-      cb(c.toDataURL('image/jpeg', 0.72));
+      cb(c.toDataURL('image/jpeg', qual || 0.72));
     };
     im.src = r.result;
   };
@@ -234,7 +234,7 @@ function openForm(cfg) {
     let inp;
     if (f.type === 'select') inp = '<select id="' + id + '" name="' + f.k + '">' + f.options.map((o) => '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('') + '</select>';
     else if (f.type === 'check') inp = '<label class="chkl"><input type="checkbox" id="' + id + '" name="' + f.k + '"' + (val ? ' checked' : '') + '><span>' + esc(f.label) + '</span></label>';
-    else if (f.type === 'photo') inp = '<div class="ph" data-ph="' + f.k + '"><input type="hidden" id="' + id + '" name="' + f.k + '" value="' + esc(val) + '"><div class="phv">' + (val ? '<img src="' + esc(val) + '" alt="">' : '') + '</div><div class="pha"><label class="btn sm phl">' + (val ? 'Заменить фото' : 'Выбрать фото') + '<input type="file" accept="image/*" class="vh" data-phf="' + f.k + '"></label><button type="button" class="btn sm" data-dact="phx"' + (val ? '' : ' hidden') + '>Убрать</button></div></div>';
+    else if (f.type === 'photo') inp = '<div class="ph" data-ph="' + f.k + '"><input type="hidden" id="' + id + '" name="' + f.k + '" value="' + esc(val) + '"><div class="phv">' + (val ? '<img src="' + esc(val) + '" alt="">' : '') + '</div><div class="pha"><label class="btn sm phl">' + (val ? 'Заменить фото' : 'Выбрать фото') + '<input type="file" accept="image/*" class="vh" data-phf="' + f.k + '" data-px="' + (f.px || 520) + '" data-q="' + (f.q || 0.72) + '"></label><button type="button" class="btn sm" data-dact="phx"' + (val ? '' : ' hidden') + '>Убрать</button></div></div>';
     else if (f.type === 'textarea') inp = '<textarea id="' + id + '" name="' + f.k + '" rows="3">' + esc(val) + '</textarea>';
     else inp = '<input id="' + id + '" name="' + f.k + '" type="' + (f.type || 'text') + '" value="' + esc(val) + '"' + (f.ph ? ' placeholder="' + esc(f.ph) + '"' : '') + (f.type === 'number' ? ' min="' + (f.min == null ? 0 : f.min) + '" max="' + (f.max == null ? 99 : f.max) + '" inputmode="numeric"' : '') + req + '>';
     return f.type === 'check' ? '<div class="fr">' + inp + '</div>' : '<div class="fr"><label for="' + id + '">' + esc(f.label) + '</label>' + inp + '</div>';
@@ -262,7 +262,7 @@ function openForm(cfg) {
       if (typeof NDS !== 'undefined' && NDS.on) { w.classList.add('up'); url = await NDS.upload(url); w.classList.remove('up'); }
       w.querySelector('input[type=hidden]').value = url; w.querySelector('.phv').innerHTML = '<img src="' + url + '" alt="">';
       w.querySelector('[data-dact=phx]').hidden = false; w.querySelector('.phl').firstChild.nodeValue = 'Заменить фото'; fi.value = '';
-    });
+    }, +fi.dataset.px || 520, +fi.dataset.q || 0.72);
   });
   form.addEventListener('click', (e) => {
     const b = e.target.closest('[data-dact]'); if (!b) return;

@@ -524,3 +524,8 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 .sh2{display:flex;align-items:center;gap:12px;padding:8px 4px}.sh2 img,.sh2 i{width:44px;height:64px;border-radius:8px;object-fit:cover;background:rgba(0,0,0,.06);flex:none}
 .sh2 .st{flex:1;display:flex;flex-direction:column;min-width:0}.sh2 .st span{font-size:13px;color:#8a8d95}
 @media (max-width:899px){.rres.ok{flex-direction:column}.rpo{width:110px}}
+.qrb{display:block;width:100%;margin:10px 0 6px;padding:8px;border-radius:18px;border:1px solid rgba(0,0,0,.08);background:#fff;cursor:zoom-in;text-align:center;font:inherit}
+.qrb img{max-width:100%;max-height:150px;object-fit:contain;display:block;margin:0 auto}
+.qrb span{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#8a8d95;margin-top:6px}
+.imgv{display:flex;flex-direction:column;align-items:center;gap:12px;background:#fff;padding:12px;border-radius:20px;max-width:92vw}
+.imgv img{max-width:100%;max-height:68vh;object-fit:contain}.imgv p{margin:0;font-size:14px;color:#6d6a72;text-align:center}

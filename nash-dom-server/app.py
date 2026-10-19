@@ -17,7 +17,7 @@ PHOTOS = os.path.join(DATA, 'photos')
 os.makedirs(PHOTOS, exist_ok=True)
 DB = os.path.join(DATA, 'db.sqlite')
 LOCK = threading.Lock()
-PHOTO_RE = re.compile(r'/photos/([a-f0-9]{32}\.jpg)')
+PHOTO_RE = re.compile(r'/photos/([a-f0-9]{32}\.(?:jpg|png))')
 
 
 def db():
