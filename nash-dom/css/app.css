@@ -365,8 +365,6 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
   .shell.his .side{right:0;left:auto;border-radius:30px 0 0 30px;transform:translateX(108%)}
   .shell.her .side{left:0}
   body.drawer .shell .side,body.drawer .shell.his .side{transform:none}
-  .dragging .side,.dragging .scrim,.dragging .band,.dragging .hbtn,.dragging .opn,.dragging .midp{transition:none !important}
-  .hbtn{touch-action:none}
   .scrim{display:block;position:fixed;inset:0;z-index:55;background:rgba(60,20,40,.32);opacity:0;pointer-events:none;transition:opacity .4s ease}
   body.drawer .scrim{opacity:1;pointer-events:auto}
   .side .rowi{min-height:52px;font-size:17px}
