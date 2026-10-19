@@ -164,15 +164,40 @@ document.addEventListener('input', (e) => {
 });
 window.addEventListener('hashchange', () => { render(); });
 window.addEventListener('online', () => render({ keep: true })); window.addEventListener('offline', () => render({ keep: true }));
-/* свайп от края: её меню слева, его справа */
-let sx = 0, sy2 = 0;
-document.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy2 = e.touches[0].clientY; }, { passive: true });
-document.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy2, z = document.body.dataset.z, W = window.innerWidth, open = document.body.classList.contains('drawer');
-  if (W > 899 || Math.abs(dy) > 60 || Math.abs(dx) < 70) return;
-  if (z === 'her') { if (!open && sx < 28 && dx > 0) document.body.classList.add('drawer'); else if (open && dx < 0) document.body.classList.remove('drawer'); }
-  if (z === 'his') { if (!open && sx > W - 28 && dx < 0) document.body.classList.add('drawer'); else if (open && dx > 0) document.body.classList.remove('drawer'); }
+/* меню: тянется за пальцем (её слева, его справа) */
+let G = null, noClick = 0;
+document.addEventListener('touchstart', (e) => {
+  G = null;
+  if (window.innerWidth > 899 || e.touches.length !== 1) return;
+  const t = e.touches[0], z = document.body.dataset.z, W = window.innerWidth, open = document.body.classList.contains('drawer'), side = $('#side');
+  if ((z !== 'her' && z !== 'his') || !side) return;
+  if (!(open || (z === 'her' ? t.clientX < 28 : t.clientX > W - 28))) return;
+  G = { x: t.clientX, y: t.clientY, z, open, mode: null, W: side.offsetWidth * 1.08, side };
 }, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (!G) return;
+  const t = e.touches[0], dx = t.clientX - G.x, dy = t.clientY - G.y;
+  if (!G.mode) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    if (Math.abs(dx) <= Math.abs(dy) * 1.2) { G = null; return; }
+    G.mode = 1; document.body.classList.add('dragging');
+  }
+  e.preventDefault();
+  const sgn = G.z === 'her' ? -1 : 1;
+  let off = (G.open ? 0 : sgn * G.W) + dx;
+  off = sgn < 0 ? Math.min(0, Math.max(-G.W, off)) : Math.max(0, Math.min(G.W, off));
+  G.off = off;
+  G.side.style.transform = 'translateX(' + off + 'px)';
+}, { passive: false });
+function endDrag() {
+  if (!G || !G.mode) { G = null; return; }
+  const g = G; G = null; noClick = Date.now();
+  document.body.classList.remove('dragging'); g.side.style.transform = '';
+  document.body.classList.toggle('drawer', Math.abs(g.off) / g.W < (g.open ? .35 : .65));
+}
+document.addEventListener('touchend', endDrag, { passive: true });
+document.addEventListener('touchcancel', endDrag, { passive: true });
+document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
 load(); render();
