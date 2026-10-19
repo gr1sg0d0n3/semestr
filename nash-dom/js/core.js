@@ -135,8 +135,8 @@ function seed() {
 }
 let S;
 function load() {
-  try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); if (S && S.v === 1) return; } } catch (e) { /* пусто */ }
-  S = seed(); persist();
+  try { const r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); if (S && S.v === 1) { if (!S.pins) S.pins = JSON.parse(JSON.stringify(PIN_DEF)); return; } } } catch (e) { /* пусто */ }
+  S = seed(); S.pins = JSON.parse(JSON.stringify(PIN_DEF)); persist();
 }
 let memStore = null;
 function persist() {
@@ -217,3 +217,5 @@ function openForm(cfg) {
   dlg.showModal();
   const first = form.querySelector('input:not([type=checkbox]),select,textarea'); if (first && !cfg.noFocus) setTimeout(() => first.focus(), 30);
 }
+
+IC.up = 'M6 14l6-6 6 6'; IC.down = 'M6 10l6 6 6-6';

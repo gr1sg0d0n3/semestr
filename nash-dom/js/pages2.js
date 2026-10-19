@@ -17,7 +17,7 @@ function togPage() {
     '<div class="tri"><section class="wd glass s tint-l in" style="--i:1"><h3>' + ic('film', 20) + 'Кино, в очереди</h3>' + (q.length ? q.map((r) => '<div class="ln">' + esc(r[0]) + '<span>' + esc(r[1]) + '</span></div>').join('') : empty('Очередь пуста')) + '<a class="more" href="#/tog/films">Открыть кино</a></section>' +
     '<section class="hero glass c in" style="--i:2"><div class="k">Что делаем сегодня</div><div class="big">Выбрать за нас</div>' + res + '<div class="acts"><button class="btn red" data-act="pickFilm">' + ic('dice', 18) + 'Что посмотрим</button><a class="btn" href="#/tog/prem">' + ic('cal', 18) + 'Премьеры</a></div></section>' +
     '<section class="wd glass s tint-r in" style="--i:3"><h3>' + ic('pin', 20) + 'Места, хотим</h3>' + (pl.length ? pl.map((r) => '<div class="ln">' + esc(r[0]) + '<span>' + r[1] + '</span></div>').join('') : empty('Пока пусто')) + '<a class="more" href="#/tog/places">Открыть места</a></section></div>' +
-    '<div class="grid" style="margin-top:20px">' + wd('cal', 'Ближайшая дата', ds, 'Все даты', '#/tog/dates', 4) + wd('fork', 'Меню недели', menu, 'Открыть кухню', '#/tog/kitchen', 5) + wd('home', 'Дела по дому', [['Осталось сегодня', chl], ['Вопрос дня', 'ждёт ответов']], 'Открыть дела', '#/tog/chores', 6) + '</div>';
+    '<div class="grid" style="margin-top:20px">' + pinCards('tog', 4) + '</div>' + '<div class="acts" style="justify-content:center;margin-top:14px">' + pinBtn('tog') + '</div>';
 }
 
 /* ====== кино ====== */

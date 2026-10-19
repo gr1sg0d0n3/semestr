@@ -54,6 +54,7 @@ const ACT = {
     $$('.hmob .tabbar [data-act]').forEach((b) => b.classList.toggle('on', !was && b.dataset.v === v));
   },
   data() { openData(); },
+  pinEdit(el) { pinEdit(el.dataset.z); },
   add(el) {
     const k = el.dataset.k, sc = SCH[k];
     openForm({ title: sc.t, fields: sc.f(), values: sc.mk(), save: 'Добавить', onSave(v) {

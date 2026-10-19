@@ -73,6 +73,7 @@ function layout(zone, page, label, main) {
 }
 
 /* ====== главная ====== */
+const pinLink = (s) => '<a href="' + s.href + '">' + ic(s.icon, 20) + esc(s.k) + '<b>' + esc(s.v) + '</b></a>';
 function homePage() {
   const sc = studyCount(), nx = nextStudy(), nd = nextDate();
   const wl = left(S.wishes).length;
@@ -98,27 +99,19 @@ function homePage() {
     '<a class="hz hl" href="#/her" aria-label="Её выбор"></a><a class="hz hr" href="#/his" aria-label="Его выбор"></a><a class="hz hm" href="#/tog" aria-label="Общее"></a></div>' +
     /* ---- телефон ---- */
     '<div class="hmob"><div class="hm-bg"></div>' +
-    '<section class="band her" data-act="hm" data-v="her" aria-label="Её выбор"><h2>Её выбор</h2><p class="st">' + esc(hint) + '. ' + esc(sub) + '</p><div class="opn"><a href="#/her/study">' + ic('study', 20) + 'Учёба<b>' + sc.done + '/' + sc.total + '</b></a><a href="#/her">' + ic('spark', 20) + 'Её страница</a><a href="#/her/wish">' + ic('bag', 20) + 'Хотелки<b>' + wl + '</b></a></div></section>' +
-    '<section class="band his" data-act="hm" data-v="his" aria-label="Его выбор"><h2>Его выбор</h2><p class="st">в списке: ' + lw + ' ' + plural(lw, 'фильм', 'фильма', 'фильмов') + ', ' + lp + ' ' + plural(lp, 'игра', 'игры', 'игр') + '</p><div class="opn"><a href="#/his">' + ic('film', 20) + 'Его страница</a><a href="#/his/lists">' + ic('list', 20) + 'Списки<b>' + S.lists.length + '</b></a><a href="#/his/server">' + ic('server', 20) + 'Сервер</a></div></section>' +
+    '<section class="band her" data-act="hm" data-v="her" aria-label="Её выбор"><h2>Её выбор</h2><p class="st">' + esc(hint) + '. ' + esc(sub) + '</p><div class="opn">' + pinShort('her', 3).map(pinLink).join('') + '<a href="#/her">' + ic('spark', 20) + 'Её страница</a></div></section>' +
+    '<section class="band his" data-act="hm" data-v="his" aria-label="Его выбор"><h2>Его выбор</h2><p class="st">в списке: ' + lw + ' ' + plural(lw, 'фильм', 'фильма', 'фильмов') + ', ' + lp + ' ' + plural(lp, 'игра', 'игры', 'игр') + '</p><div class="opn">' + pinShort('his', 3).map(pinLink).join('') + '<a href="#/his">' + ic('film', 20) + 'Его страница</a></div></section>' +
     '<button class="hbtn" data-act="hm" data-v="mid" aria-label="Общее"><svg viewBox="0 0 100 90" aria-hidden="true"><defs><clipPath id="m1"><rect width="50" height="90"/></clipPath><clipPath id="m2"><rect x="50" width="50" height="90"/></clipPath></defs><path class="a" d="' + HEART + '" clip-path="url(#m1)"/><path class="b" d="' + HEART + '" clip-path="url(#m2)"/></svg></button>' +
-    '<div class="midp"><div class="glass"><h3>Общее</h3><div class="chips">' + links + '</div><div style="padding:0 12px"><a class="big-btn red" href="#/tog">Открыть общее</a></div></div></div>' +
+    '<div class="mtop">' + pinShort('tog', 3).map((s) => '<a class="mc glass" href="' + s.href + '"><span>' + esc(s.k) + '</span><b>' + esc(s.v) + '</b></a>').join('') + '</div>' +
+    '<div class="mbot"><a class="big-btn red" href="#/tog">Открыть общее</a></div>' +
     '<div class="hint">Выберите половину</div>' + '<nav class="tabbar glass" aria-label="Половины"><button data-act="hm" data-v="her">' + ic('spark', 22) + 'Её</button><button class="tgb" data-act="hm" data-v="mid">' + ic('heart', 22) + 'Общее</button><button class="hsb" data-act="hm" data-v="his">' + ic('film', 22) + 'Его</button></nav></div></div>';
 }
 
 /* ====== её страница ====== */
 function herPage() {
-  const sc = studyCount(), nx = nextStudy();
-  const hero = '<section class="hero glass in" style="--i:1"><div class="tx"><div class="k">Ближайшее</div><div class="big">' + (nx ? esc(whenWord(nx.date, nx.time)) : 'Всё сдано') + '</div><div class="sub">' + (nx ? esc(TYPE_N[nx.type] + ': ' + nx.sub.name) : 'Новых сроков нет. Добавьте пункт в учёбе.') + '</div></div><div class="ringb">' + ring(sc.total ? sc.done / sc.total : 0, 120) + '<span>' + sc.done + '<small>из ' + sc.total + '</small></span></div></section>';
-  const first = (t) => { const x = studyAll().filter((i) => i.type === t && !i.done && i.date).sort((a, b) => a.date.localeCompare(b.date))[0]; return x ? [TYPE_PL[t], fmtD(x.date)] : null; };
-  const dl = ['r', 't', 'f'].map(first).filter(Boolean);
-  const acts = btn('Открыть учёбу', 'go', { c: 'main', i: 'study', d: 'data-href="#/her/study"' }) + btn('Сроки в календарь', 'studyIcs', { i: 'cal' }) + btn('Хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="wishes"' });
-  return hd('Её выбор', todayLong(), acts) + hero + '<div class="grid">' +
-    wd('bag', 'Хотелки', left(S.wishes).slice(0, 3).map((w) => [w.name, 'хочу']), 'Все хотелки', '#/her/wish', 2) +
-    wd('film', 'Хочу посмотреть', left(S.lists.filter((l) => l.kind === 'w')).slice(0, 3).map((l) => [l.title, l.meta]), 'Открыть кино', '#/her/lists', 3) +
-    wd('cal', 'Сроки семестра', dl, 'Открыть учёбу', '#/her/study', 4) + '</div>';
+  const acts = btn('Открыть учёбу', 'go', { c: 'main', i: 'study', d: 'data-href="#/her/study"' }) + btn('Сроки в календарь', 'studyIcs', { i: 'cal' }) + btn('Хотелка', 'add', { i: 'plus', w: 2, d: 'data-k="wishes"' }) + pinBtn('her');
+  return hd('Её выбор', todayLong(), acts) + pinHeroes('her') + '<div class="grid">' + pinCards('her', 2) + '</div>';
 }
-
-/* ====== учёба ====== */
 function studyPage() {
   const sc = studyCount(), f = UI.studyF, nx = nextStudy();
   const cnt = { w: 0, t: 0, r: 0, f: 0 }; studyAll().forEach((i) => cnt[i.type]++);
@@ -171,11 +164,8 @@ function listsPage(zone) {
 
 /* ====== его страница и сервер ====== */
 function hisPage() {
-  const ok = serverState() === 'ok', c = (k) => left(S.lists.filter((l) => l.kind === k)).slice(0, 3).map((l) => [l.title, l.meta]);
-  const acts = btn('Выбрать фильм', 'pickFilm', { c: 'main', i: 'film' }) + btn('Сервер', 'go', { i: 'server', d: 'data-href="#/his/server"' }) + btn('Добавить', 'add', { i: 'plus', w: 2, d: 'data-k="lists"' });
-  const pick = UI.pick ? '<div class="pickline">Сегодня смотрим: <b>' + esc(UI.pick) + '</b></div>' : '';
-  return hd('Его выбор', todayLong(), acts) + '<section class="hero glass in" style="--i:1"><div class="tx"><div class="k">Сервер</div><div class="big">' + (ok ? 'Всё работает' : 'Нет связи') + '</div><div class="sub">' + (ok ? 'Сайт открыт и данные сохраняются на этом устройстве.' : 'Устройство не в сети. Записи сохранятся и останутся здесь.') + '</div>' + pick + '</div><div class="stat"><div><i class="dot ' + (ok ? '' : 'bad') + '"></i>Сайт</div><div><i class="dot ' + (ok ? '' : 'bad') + '"></i>Синхронизация</div><div><i class="dot"></i>VPN</div></div></section><div class="grid">' +
-    wd('film', 'Смотреть', c('w'), 'Весь список', '#/his/lists', 2) + wd('play', 'Играть', c('p'), 'Весь список', '#/his/lists', 3) + wd('book', 'Читать', c('r'), 'Весь список', '#/his/lists', 4) + '</div>';
+  const acts = btn('Выбрать фильм', 'pickFilm', { c: 'main', i: 'film' }) + btn('Сервер', 'go', { i: 'server', d: 'data-href="#/his/server"' }) + btn('Добавить', 'add', { i: 'plus', w: 2, d: 'data-k="lists"' }) + pinBtn('his');
+  return hd('Его выбор', todayLong(), acts) + pinHeroes('his') + '<div class="grid">' + pinCards('his', 2) + '</div>';
 }
 function serverPage() {
   const ok = serverState() === 'ok', tg = S.set.tg;
