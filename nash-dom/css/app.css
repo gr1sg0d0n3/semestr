@@ -473,3 +473,9 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 .ph .pha{display:flex;gap:8px;margin-top:8px}
 .phl{cursor:pointer;position:relative}
 .vh:focus-visible + *,.phl:focus-within{outline:2px solid currentColor;outline-offset:2px}
+.pairov{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(40,20,30,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.pairc{width:min(380px,100%);padding:26px;border-radius:28px;display:flex;flex-direction:column;gap:12px;background:#fffafb}
+.pairc h2{margin:0}.pairc p{margin:0;color:#6d6a72;line-height:1.45}
+.pairc input{font:inherit;font-size:28px;letter-spacing:.4em;text-align:center;padding:12px;border-radius:16px;border:1px solid rgba(0,0,0,.12)}
+.pairc .pe{color:#c0392b;min-height:1.2em;font-size:14px}
+.ph.up .phv::after{content:'Загружаю…';color:#8a8d95}

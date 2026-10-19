@@ -158,7 +158,7 @@ let memStore = null;
 function persist() {
   const j = JSON.stringify(S);
   try { localStorage.setItem(KEY, j); } catch (e) { memStore = j; if (typeof toast === 'function') toast('Память браузера заполнена: изменения не сохранятся после закрытия. Удалите часть фото.'); }
-  if (window.onNdSave) window.onNdSave(S); // сюда позже подключится синхронизация с сервером
+  if (window.onNdSave && !(typeof NDS !== 'undefined' && NDS.quiet)) window.onNdSave(S); // сюда позже подключится синхронизация с сервером
 }
 const PEOPLE = { a: 'Кристина', b: 'Гриша' };
 
@@ -248,8 +248,9 @@ function openForm(cfg) {
   form.addEventListener('change', (e) => {
     const fi = e.target.closest('[data-phf]'); if (!fi || !fi.files[0]) return;
     const w = fi.closest('.ph');
-    shrinkImg(fi.files[0], (url) => {
+    shrinkImg(fi.files[0], async (url) => {
       if (!url) { toast('Не удалось открыть фото'); return; }
+      if (typeof NDS !== 'undefined' && NDS.on) { w.classList.add('up'); url = await NDS.upload(url); w.classList.remove('up'); }
       w.querySelector('input[type=hidden]').value = url; w.querySelector('.phv').innerHTML = '<img src="' + url + '" alt="">';
       w.querySelector('[data-dact=phx]').hidden = false; w.querySelector('.phl').firstChild.nodeValue = 'Заменить фото'; fi.value = '';
     });

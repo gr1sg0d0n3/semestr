@@ -207,7 +207,7 @@ document.addEventListener('touchcancel', endDrag, { passive: true });
 document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
-load(); render();
+load(); render(); NDS.init();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 /* без масштабирования щипком и двойным касанием (iOS) */
