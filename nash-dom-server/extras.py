@@ -695,6 +695,29 @@ def check():
     return out
 
 
+def film_text():
+    try:
+        it = film_random('movie', '', 7, 'tmdb')
+    except Exception as x:
+        return 'Не получилось: %s' % (x if isinstance(x, Fail) else 'источник недоступен')
+    r = [('TMDB ' + str(it['rtmdb'])) if it.get('rtmdb') else '', ('КП ' + str(it['rkp'])) if it.get('rkp') else '']
+    return '🎬 %s (%s)%s\n%s' % (it.get('title', ''), it.get('year', ''), (' · ' + ', '.join(x for x in r if x)) if any(r) else '', (it.get('overview') or '')[:400])
+
+
+def server_text():
+    import monitor; monitor.A = A
+    d = monitor.api({})
+    st = d['stats']
+    if not st:
+        return 'Сборщик состояния не запущен. Выполните установщик заново.'
+    now = d['now']; m = st['mem']; ds = st['disk']
+    on = [p for p in st['wg']['peers'] if p['hs'] and now - p['hs'] < 180]
+    out = ['Проблемы:\n' + '\n'.join('• ' + x for x in d['problems']) if d['problems'] else 'Всё работает.',
+           'Нагрузка %.2f, память %d%%, диск %d%%' % (st['load'][1], round((1 - m['avail'] / m['total']) * 100), round(ds['used'] / ds['total'] * 100)),
+           'VPN: в сети %d из %d' % (len(on), len(st['wg']['peers']))]
+    return '\n'.join(out)
+
+
 def register(app):
     global A
     A = app
@@ -703,3 +726,5 @@ def register(app):
     app.tick_extra = tick_extra
     app.digest_extra = digest_extra
     app.status_extra = check
+    app.film_extra = film_text
+    app.server_extra = server_text

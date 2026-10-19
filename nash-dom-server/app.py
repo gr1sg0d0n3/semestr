@@ -95,15 +95,15 @@ def bot_message(m):
     reply = lambda t: tg('sendMessage', chat_id=chat, text=t)
     if cmd == '/start':
         if who:
-            return reply('Вы уже подключены как %s. /code — код для входа на сайт.' % PEOPLE[who])
+            return show_menu(chat, who, 'Вы уже подключены как %s. Кнопки внизу — всё самое нужное.' % PEOPLE[who])
         if n == 0 and SECRET and arg == SECRET:
             c = db(); c.execute('INSERT OR REPLACE INTO users VALUES(?,?)', (chat, 'b')); c.commit(); c.close()
-            return reply('Готово, вы Гриша. /invite — приглашение для Кристины, /code — код для входа на сайт.')
+            return show_menu(chat, 'b', 'Готово, вы Гриша. Кнопки внизу — всё самое нужное.')
         w = use_code(arg, 'invite') if arg else None
         if w:
             c = db(); c.execute('INSERT OR REPLACE INTO users VALUES(?,?)', (chat, w)); c.commit(); c.close()
             notify('%s подключилась к боту.' % PEOPLE[w], skip=w)
-            return reply('Привет, %s! /code — код для входа на сайт.' % PEOPLE[w])
+            return show_menu(chat, w, 'Привет, %s! Кнопки внизу — всё самое нужное.' % PEOPLE[w])
         return  # чужим не отвечаем
     if not who:
         return
@@ -116,13 +116,91 @@ def bot_message(m):
         reply('Проверяю источники, это займёт до полминуты…')
         return reply('\n'.join('%s: %s' % kv for kv in ex()) if ex else 'Проверка недоступна')
     if cmd in ('/help', '/menu'):
-        return reply('/code — код для входа на сайт\n/invite — пригласить Кристину (только Гриша)')
+        return show_menu(chat, who, 'Кнопки внизу — всё самое нужное. Любое фото или скриншот с кодом получения я сам добавлю в Маркетплейс.')
+    btn = BTN.get(text)
+    if btn:
+        return bot_button(btn, chat, who, reply)
+    if not cmd.startswith('/'):
+        w = meta_get('wait_' + str(chat), '')
+        act, _, ts = w.partition('|')
+        if act and time.time() - float(ts or 0) < 900:
+            if act in ('buy', 'note') and text:
+                meta_set('wait_' + str(chat), '')
+                return bot_save(act, text, who, reply)
+            if act == 'order' and (m.get('photo') or m.get('document') or text):
+                meta_set('wait_' + str(chat), '')
     hook = globals().get('bot_extra')
     if hook:
         hook(m, who, reply)
 
 
+BTN = {'📦 Код с ПВЗ': 'order', '🛒 В покупки': 'buy', '📝 Заметка дня': 'note', '📅 Сегодня': 'today', '🎬 Случайный фильм': 'film', '🌐 Открыть сайт': 'site', '🔑 Код для входа': 'code', '🖥 Сервер': 'server', '🔎 Проверка источников': 'check', '💌 Пригласить Кристину': 'invite'}
+SITE = os.environ.get('NASHDOM_SITE', 'https://bestgirllovestudy.ru')
+
+
+def keyboard(who):
+    rows = [['📦 Код с ПВЗ', '🛒 В покупки'], ['📝 Заметка дня', '📅 Сегодня'], ['🎬 Случайный фильм', '🌐 Открыть сайт'], ['🔑 Код для входа']]
+    if who == 'b':
+        rows += [['🖥 Сервер', '🔎 Проверка источников'], ['💌 Пригласить Кристину']]
+    return {'keyboard': [[{'text': t} for t in r] for r in rows], 'resize_keyboard': True, 'is_persistent': True}
+
+
+def show_menu(chat, who, text):
+    tg('sendMessage', chat_id=chat, text=text, reply_markup=keyboard(who))
+
+
+def bot_button(act, chat, who, reply):
+    if act in ('buy', 'note', 'order'):
+        meta_set('wait_' + str(chat), '%s|%s' % (act, time.time()))
+        return reply({'buy': 'Что купить? Напишите одним сообщением.', 'note': 'Напишите заметку дня, я добавлю её на сайт.', 'order': 'Пришлите скриншот или фото с QR-кодом или кодом получения (можно с подписью: магазин, до какого числа). Я сохраню картинку и добавлю заказ в Маркетплейс.'}[act])
+    meta_set('wait_' + str(chat), '')
+    if act == 'site':
+        return tg('sendMessage', chat_id=chat, text='Сайт «Наш дом»', reply_markup={'inline_keyboard': [[{'text': 'Открыть сайт', 'url': SITE}]]})
+    if act == 'code':
+        return reply('Код для входа: %s\nДействует 5 минут, подходит один раз.' % new_code(who, 'pair'))
+    if act == 'today':
+        lines = digest_lines(who, datetime.now(TZ).date())
+        return reply('Сегодня:\n' + '\n'.join('• ' + x for x in lines) if lines else 'На сегодня ничего не запланировано.')
+    if act == 'film':
+        ex = globals().get('film_extra')
+        reply('Ищу фильм…')
+        return reply(ex() if ex else 'Недоступно')
+    if who != 'b':
+        return
+    if act == 'invite':
+        return reply('Отправьте Кристине это сообщение, пусть откроет бота и нажмёт Start с кодом:\n/start %s\n(действует 24 часа)' % new_code('a', 'invite', 86400))
+    if act == 'check':
+        ex = globals().get('status_extra')
+        reply('Проверяю источники, это займёт до полминуты…')
+        return reply('\n'.join('%s: %s' % kv for kv in ex()) if ex else 'Проверка недоступна')
+    if act == 'server':
+        ex = globals().get('server_extra')
+        return reply(ex() if ex else 'Недоступно')
+
+
+def bot_save(act, text, who, reply):
+    text = text.strip()[:500]
+    with LOCK:
+        c = db()
+        def get(k, d):
+            r = c.execute('SELECT v FROM kv WHERE k=?', (k,)).fetchone(); return json.loads(r['v']) if r else d
+        def put(k, v):
+            c.execute('INSERT OR REPLACE INTO kv VALUES(?,?,?)', (k, json.dumps(v, ensure_ascii=False, separators=(',', ':')), int(time.time() * 1000)))
+        if act == 'buy':
+            lst = get('buys', []); lst.append({'id': 'b' + secrets.token_hex(4), 'name': text, 'when': '', 'who': '', 'note': '', 'done': False}); put('buys', lst)
+        else:
+            d = datetime.now(TZ).date().isoformat(); n = get('notes', {}); e = n.get(d) or {}
+            e[who] = (e.get(who, '') + '\n' if e.get(who) else '') + text; n[d] = e; put('notes', n)
+        c.commit(); c.close()
+    if act == 'buy':
+        notify('Новая покупка: %s (добавил: %s)' % (text, PEOPLE[who]), skip=who)
+        reply('Добавил в покупки: %s' % text)
+    else:
+        reply('Заметка дня сохранена.')
+
+
 def bot_loop():
+    tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'help', 'description': 'Помощь'}])
     off = int(meta_get('tg_off', '0'))
     while True:
         r = tg('getUpdates', offset=off, timeout=30)
@@ -326,33 +404,38 @@ def scheduler():
             print('sched error', e, flush=True)
 
 
+def digest_lines(who, today, st=None):
+    st = st or get_state(); lines = []
+    for b in (st.get('buys', {}).get('v') or []):
+        if b.get('done') or not b.get('when'):
+            continue
+        if b.get('who') in (who, '') and datetime.strptime(b['when'], '%Y-%m-%d').date() <= today:
+            lines.append('Купить: %s' % b['name'])
+    for ch in (st.get('chores', {}).get('v') or []):
+        if ch.get('who') == who and not ch.get('done') and ch.get('last') != today.isoformat() and (not ch.get('when') or ch['when'] <= today.isoformat()) and ch.get('when'):
+            lines.append('Дело: %s' % ch['name'])
+    for d in (st.get('dates', {}).get('v') or []):
+        try:
+            dt = datetime.strptime(d['date'], '%Y-%m-%d').date()
+            if d.get('yearly'):
+                dt = dt.replace(year=today.year)
+                if dt < today:
+                    dt = dt.replace(year=today.year + 1)
+            n = (dt - today).days
+            if n in (0, 1, 7):
+                lines.append('%s: %s' % (d['name'], 'сегодня' if n == 0 else 'завтра' if n == 1 else 'через неделю'))
+        except Exception:
+            pass
+    hook = globals().get('digest_extra')
+    if hook:
+        lines += hook(who, today)
+    return lines
+
+
 def digest(now):
     st = get_state(); today = now.date()
     for who in ('a', 'b'):
-        lines = []
-        for b in (st.get('buys', {}).get('v') or []):
-            if b.get('done') or not b.get('when'):
-                continue
-            if b.get('who') in (who, '') and datetime.strptime(b['when'], '%Y-%m-%d').date() <= today:
-                lines.append('Купить: %s' % b['name'])
-        for ch in (st.get('chores', {}).get('v') or []):
-            if ch.get('who') == who and not ch.get('done') and ch.get('last') != today.isoformat() and (not ch.get('when') or ch['when'] <= today.isoformat()) and ch.get('when'):
-                lines.append('Дело: %s' % ch['name'])
-        for d in (st.get('dates', {}).get('v') or []):
-            try:
-                dt = datetime.strptime(d['date'], '%Y-%m-%d').date()
-                if d.get('yearly'):
-                    dt = dt.replace(year=today.year)
-                    if dt < today:
-                        dt = dt.replace(year=today.year + 1)
-                n = (dt - today).days
-                if n in (0, 1, 7):
-                    lines.append('%s: %s' % (d['name'], 'сегодня' if n == 0 else 'завтра' if n == 1 else 'через неделю'))
-            except Exception:
-                pass
-        hook = globals().get('digest_extra')
-        if hook:
-            lines += hook(who, today)
+        lines = digest_lines(who, today, st)
         if lines:
             notify('Сводка на сегодня:\n' + '\n'.join('• ' + x for x in lines), who=who)
 
