@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
 
 DATA = os.environ.get('NASHDOM_DATA', '/var/lib/nashdom')
-PORT = int(os.environ.get('NASHDOM_PORT', '8787'))
+PORT = int(os.environ.get('NASHDOM_PORT', '38787'))
 TOKEN = os.environ.get('TG_TOKEN', '')
 SECRET = os.environ.get('SETUP_SECRET', '')
 DEV = os.environ.get('NASHDOM_DEV') == '1'
