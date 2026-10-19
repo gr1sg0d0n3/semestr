@@ -124,6 +124,12 @@ def bot_message(m):
     if btn:
         return bot_button(btn, chat, who, reply)
     if not cmd.startswith('/'):
+        import botflow; botflow.A = A_self(); botflow.E = extras_mod()
+        if text and botflow.incoming_text(chat, who, text):
+            return
+        if (m.get('photo') or (m.get('document') or {}).get('mime_type', '').startswith('image/') or text) and botflow.order_start(m, who, chat, (m.get('text') or m.get('caption') or '').strip(), datetime.now(TZ)):
+            meta_set('wait_' + str(chat), '')
+            return
         w = meta_get('wait_' + str(chat), '')
         act, _, ts = w.partition('|')
         if act and time.time() - float(ts or 0) < 900:
@@ -137,12 +143,12 @@ def bot_message(m):
         hook(m, who, reply)
 
 
-BTN = {'📦 Код с ПВЗ': 'order', '🛒 В покупки': 'buy', '📝 Заметка дня': 'note', '📅 Сегодня': 'today', '🎬 Случайный фильм': 'film', '🌐 Открыть сайт': 'site', '🔑 Код для входа': 'code', '🖥 Сервер': 'server', '🔎 Проверка источников': 'check', '💌 Пригласить Кристину': 'invite'}
+BTN = {'📦 Код с ПВЗ': 'order', '🛒 В покупки': 'buy', '🧹 Дела': 'chores', '📝 Заметка дня': 'note', '📅 Сегодня': 'today', '🎬 Случайный фильм': 'film', '🌐 Открыть сайт': 'site', '🔑 Код для входа': 'code', '🖥 Сервер': 'server', '🔎 Проверка источников': 'check', '💌 Пригласить Кристину': 'invite'}
 SITE = os.environ.get('NASHDOM_SITE', 'https://bestgirllovestudy.ru')
 
 
 def keyboard(who):
-    rows = [['📦 Код с ПВЗ', '🛒 В покупки'], ['📝 Заметка дня', '📅 Сегодня'], ['🎬 Случайный фильм', '🌐 Открыть сайт'], ['🔑 Код для входа']]
+    rows = [['📦 Код с ПВЗ', '🛒 В покупки'], ['🧹 Дела', '📝 Заметка дня'], ['📅 Сегодня'], ['🎬 Случайный фильм', '🌐 Открыть сайт'], ['🔑 Код для входа']]
     if who == 'b':
         rows += [['🖥 Сервер', '🔎 Проверка источников'], ['💌 Пригласить Кристину']]
     return {'keyboard': [[{'text': t} for t in r] for r in rows], 'resize_keyboard': True, 'is_persistent': True}
@@ -153,7 +159,10 @@ def show_menu(chat, who, text):
 
 
 def bot_button(act, chat, who, reply):
-    if act in ('buy', 'note', 'order'):
+    if act in ('buy', 'chores'):
+        import botflow; botflow.A = A_self(); botflow.E = extras_mod()
+        return botflow.start_list('buys' if act == 'buy' else 'chores', chat, who)
+    if act in ('note', 'order'):
         meta_set('wait_' + str(chat), '%s|%s' % (act, time.time()))
         return reply({'buy': 'Что купить? Напишите одним сообщением.', 'note': 'Напишите заметку дня, я добавлю её на сайт.', 'order': 'Пришлите скриншот или фото с QR-кодом или кодом получения (можно с подписью: магазин, до какого числа). Я сохраню картинку и добавлю заказ в Маркетплейс.'}[act])
     meta_set('wait_' + str(chat), '')
@@ -202,6 +211,23 @@ def bot_save(act, text, who, reply):
         reply('Заметка дня сохранена.')
 
 
+def bot_callback(cq):
+    chat = cq['message']['chat']['id']
+    c = db(); u = c.execute('SELECT who FROM users WHERE chat=?', (chat,)).fetchone(); c.close()
+    if not u:
+        return
+    import botflow; botflow.A = A_self(); botflow.E = extras_mod(); botflow.callback(cq)
+
+
+def A_self():
+    return sys.modules[__name__]
+
+
+def extras_mod():
+    import extras
+    return extras
+
+
 def bot_loop():
     tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'digest', 'description': 'Сводка на сегодня сейчас'}, {'command': 'help', 'description': 'Помощь'}])
     off = int(meta_get('tg_off', '0'))
@@ -214,6 +240,8 @@ def bot_loop():
             try:
                 if 'message' in up:
                     bot_message(up['message'])
+                elif 'callback_query' in up:
+                    bot_callback(up['callback_query'])
             except Exception as e:
                 print('bot error', e, flush=True)
         meta_set('tg_off', str(off))
