@@ -1,5 +1,5 @@
 """Этап 3: кино (TMDB + Кинопоиск), книги (Open Library), рецепты (TheMealDB), маркетплейс (коды ПВЗ)."""
-import hashlib, json, os, random, re, time, urllib.parse, urllib.request
+import hashlib, json, os, random, re, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -62,7 +62,15 @@ def tm(path, **q):
         h['Authorization'] = 'Bearer ' + key
     else:
         q['api_key'] = key
-    return jget('https://api.themoviedb.org/3' + path + '?' + urllib.parse.urlencode(q), h)
+    last = None
+    for host in ('api.themoviedb.org', 'api.tmdb.org'):  # запасной адрес, если основной недоступен с сервера
+        try:
+            return jget('https://' + host + '/3' + path + '?' + urllib.parse.urlencode(q), h)
+        except urllib.error.HTTPError:
+            raise
+        except Exception as e:
+            last = e
+    raise last
 
 
 def tm_item(x, kind=None):
@@ -423,7 +431,7 @@ def check():
         except Fail as x:
             out.append((name, str(x)))
         except Exception as x:
-            out.append((name, 'ошибка: %s' % str(x)[:80]))
+            out.append((name, 'ошибка: %s' % str(x)[:200]))
     t('TMDB', lambda: tm('/configuration'))
     t('Кинопоиск', lambda: kp('/v2.2/films/301'))
     t('Книги (Open Library)', lambda: jget('https://openlibrary.org/search.json?q=tolkien&limit=1'))
