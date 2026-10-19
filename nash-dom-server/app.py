@@ -109,6 +109,9 @@ def bot_message(m):
         return
     if cmd == '/code':
         return reply('Код для входа: %s\nДействует 5 минут, подходит один раз.' % new_code(who, 'pair'))
+    if cmd == '/digest':
+        lines = digest_lines(who, datetime.now(TZ).date())
+        return notify('Сводка на сегодня:\n' + '\n'.join('• ' + x for x in lines), who=who) if lines else reply('Сводка на сегодня пуста: ничего не запланировано.')
     if cmd == '/invite' and who == 'b':
         return reply('Отправьте Кристине это сообщение, пусть откроет бота и нажмёт Start с кодом:\n/start %s\n(действует 24 часа)' % new_code('a', 'invite', 86400))
     if cmd == '/check' and who == 'b':
@@ -200,7 +203,7 @@ def bot_save(act, text, who, reply):
 
 
 def bot_loop():
-    tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'help', 'description': 'Помощь'}])
+    tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'digest', 'description': 'Сводка на сегодня сейчас'}, {'command': 'help', 'description': 'Помощь'}])
     off = int(meta_get('tg_off', '0'))
     while True:
         r = tg('getUpdates', offset=off, timeout=30)
