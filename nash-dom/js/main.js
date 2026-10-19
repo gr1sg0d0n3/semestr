@@ -177,3 +177,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.b
 
 load(); render();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+/* без масштабирования щипком и двойным касанием (iOS) */
+['gesturestart','gesturechange','gestureend'].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false }); });
