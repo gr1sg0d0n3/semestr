@@ -113,6 +113,8 @@ def bot_message(m):
     if cmd == '/digest':
         lines = digest_lines(who, datetime.now(TZ).date())
         return notify('Сводка на сегодня:\n' + '\n'.join('• ' + x for x in lines), who=who) if lines else reply('Сводка на сегодня пуста: ничего не запланировано.')
+    if cmd == '/vpn' and who == 'b':
+        return vpn_menu(chat)
     if cmd == '/invite' and who == 'b':
         return reply('Отправьте Кристине это сообщение, пусть откроет бота и нажмёт Start с кодом:\n/start %s\n(действует 24 часа)' % new_code('a', 'invite', 86400))
     if cmd == '/check' and who == 'b':
@@ -124,6 +126,12 @@ def bot_message(m):
     btn = BTN.get(text)
     if btn:
         return bot_button(btn, chat, who, reply)
+    if not cmd.startswith('/') and who == 'b' and text:
+        w0, _, ts0 = meta_get('wait_' + str(chat), '').partition('|')
+        if w0 == 'vpnnew' and time.time() - float(ts0 or 0) < 900:
+            meta_set('wait_' + str(chat), '')
+            import vpnbot; vpnbot.A = A_self()
+            return vpnbot.create_from_text(chat, text)
     if not cmd.startswith('/'):
         import botflow; botflow.A = A_self(); botflow.E = extras_mod()
         if text and botflow.incoming_text(chat, who, text):
@@ -144,14 +152,14 @@ def bot_message(m):
         hook(m, who, reply)
 
 
-BTN = {'📦 Код с ПВЗ': 'order', '🛒 В покупки': 'buy', '🧹 Дела': 'chores', '📝 Заметка дня': 'note', '📅 Сегодня': 'today', '🎬 Случайный фильм': 'film', '🌐 Открыть сайт': 'site', '🔑 Код для входа': 'code', '🖥 Сервер': 'server', '🔎 Проверка источников': 'check', '💌 Пригласить Кристину': 'invite'}
+BTN = {'📦 Код с ПВЗ': 'order', '🛒 В покупки': 'buy', '🧹 Дела': 'chores', '📝 Заметка дня': 'note', '📅 Сегодня': 'today', '🎬 Случайный фильм': 'film', '🌐 Открыть сайт': 'site', '🔑 Код для входа': 'code', '🖥 Сервер': 'server', '🔐 VPN': 'vpn', '🔎 Проверка источников': 'check', '💌 Пригласить Кристину': 'invite'}
 SITE = os.environ.get('NASHDOM_SITE', 'https://bestgirllovestudy.ru')
 
 
 def keyboard(who):
     rows = [['📦 Код с ПВЗ', '🛒 В покупки'], ['🧹 Дела', '📝 Заметка дня'], ['📅 Сегодня'], ['🎬 Случайный фильм', '🌐 Открыть сайт'], ['🔑 Код для входа']]
     if who == 'b':
-        rows += [['🖥 Сервер', '🔎 Проверка источников'], ['💌 Пригласить Кристину']]
+        rows += [['🖥 Сервер', '🔐 VPN'], ['🔎 Проверка источников', '💌 Пригласить Кристину']]
     return {'keyboard': [[{'text': t} for t in r] for r in rows], 'resize_keyboard': True, 'is_persistent': True}
 
 
@@ -186,9 +194,16 @@ def bot_button(act, chat, who, reply):
         ex = globals().get('status_extra')
         reply('Проверяю источники, это займёт до полминуты…')
         return reply('\n'.join('%s: %s' % kv for kv in ex()) if ex else 'Проверка недоступна')
+    if act == 'vpn':
+        return vpn_menu(chat)
     if act == 'server':
         ex = globals().get('server_extra')
         return reply(ex() if ex else 'Недоступно')
+
+
+def vpn_menu(chat):
+    import vpnbot; vpnbot.A = A_self()
+    vpnbot.show_menu(chat)
 
 
 def bot_save(act, text, who, reply):
@@ -217,6 +232,10 @@ def bot_callback(cq):
     c = db(); u = c.execute('SELECT who FROM users WHERE chat=?', (chat,)).fetchone(); c.close()
     if not u:
         return
+    if (cq.get('data') or '').startswith('v:'):
+        if u['who'] == 'b':
+            import vpnbot; vpnbot.A = A_self(); vpnbot.callback(cq)
+        return
     import botflow; botflow.A = A_self(); botflow.E = extras_mod(); botflow.callback(cq)
 
 
@@ -230,7 +249,7 @@ def extras_mod():
 
 
 def bot_loop():
-    tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'digest', 'description': 'Сводка на сегодня сейчас'}, {'command': 'help', 'description': 'Помощь'}])
+    tg('setMyCommands', commands=[{'command': 'menu', 'description': 'Кнопки'}, {'command': 'code', 'description': 'Код для входа на сайт'}, {'command': 'digest', 'description': 'Сводка на сегодня сейчас'}, {'command': 'help', 'description': 'Помощь'}, {'command': 'vpn', 'description': 'VPN-клиенты (только Гриша)'}])
     off = int(meta_get('tg_off', '0'))
     while True:
         r = tg('getUpdates', offset=off, timeout=30)
