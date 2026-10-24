@@ -95,6 +95,23 @@ def qr_png(cid):
     return r.stdout
 
 
-def config_text(cid):
-    """Текст .conf клиента (содержит приватный ключ)."""
-    return call('GET', '/api/client/%d/configuration' % int(cid), raw=True)
+def _v4(line):
+    """Оставляет в значении «Address/AllowedIPs/DNS» только IPv4 (клиент AmneziaVPN на Mac падает, если у интерфейса есть IPv6)."""
+    k, _, v = line.partition('=')
+    keep = [x.strip() for x in v.split(',') if x.strip() and ':' not in x]
+    return '%s= %s' % (k, ', '.join(keep)) if keep else None
+
+
+def config_text(cid, ipv4_only=True):
+    """Текст .conf клиента (содержит приватный ключ). По умолчанию без IPv6."""
+    raw = call('GET', '/api/client/%d/configuration' % int(cid), raw=True)
+    if not ipv4_only:
+        return raw
+    out = []
+    for l in raw.decode().splitlines():
+        if l.split('=')[0].strip() in ('Address', 'AllowedIPs', 'DNS'):
+            l = _v4(l)
+            if l is None:
+                continue
+        out.append(l)
+    return ('\n'.join(out) + '\n').encode()
