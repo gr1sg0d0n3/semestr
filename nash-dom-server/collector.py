@@ -56,6 +56,15 @@ def wg_state():
         elif len(p) >= 8:  # клиент: интерфейс, публичный ключ, psk (не читаем), endpoint (не сохраняем), allowed-ips, handshake, rx, tx
             k8 = p[1][:8]
             out['peers'].append({'iface': p[0], 'pub8': k8, 'name': names.get(k8, ''), 'ips': p[4] if p[4] != '(none)' else '', 'hs': int(p[5] or 0), 'rx': int(p[6] or 0), 'tx': int(p[7] or 0)})
+    try:  # AmneziaWG в контейнере wg-easy: хост его не видит, спрашиваем API панели
+        import wgeasy
+        ap = wgeasy.peers()
+        out['ifaces'].append({'name': wgeasy.IFACE, 'pub8': '', 'port': '443'})
+        out['peers'] += ap
+    except ImportError:
+        pass
+    except Exception as e:
+        out['awg_error'] = str(e)[:120]
     return out
 
 
@@ -112,6 +121,9 @@ def collect():
         if n.endswith('.service'):
             svcs.append(n[:-8])
     st = {s: run('systemctl', 'is-active', s).strip() or 'unknown' for s in dict.fromkeys(svcs)}
+    dk = run('docker', 'inspect', '-f', '{{.State.Status}}', 'wg-easy').strip()
+    if dk:
+        st['wg-easy'] = 'active' if dk == 'running' else dk
     failed = [l.split()[0] for l in run('systemctl', '--failed', '--no-legend', '--plain').splitlines() if l.split()]
     return {'ts': int(time.time()), 'host': os.uname().nodename, 'cpus': os.cpu_count() or 1, 'load': [float(x) for x in la[:3]] if la else [0, 0, 0],
             'mem': {'total': mi.get('MemTotal', 0) * 1024, 'avail': mi.get('MemAvailable', 0) * 1024}, 'disk': {'total': du.total, 'used': du.used},
