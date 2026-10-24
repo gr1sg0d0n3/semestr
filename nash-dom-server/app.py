@@ -304,7 +304,7 @@ def diff_notify(changed, who):
             for it in new:
                 o = prev.get(it.get('id')) if isinstance(it, dict) else None
                 if o and ((it.get('done') and not o.get('done')) or (it.get('last') and it.get('last') != o.get('last'))):
-                    notify('%s сделал(а): %s' % (PEOPLE.get(who, ''), it.get('name', '')), skip=who)
+                    notify('%s %s: %s' % (PEOPLE.get(who, ''), 'сделала' if who == 'a' else 'сделал', it.get('name', '')))
         hook = globals().get('diff_extra')
         if hook:
             hook(k, old, new, who)

@@ -21,7 +21,7 @@ function choresPage() {
   const ord = S.chores.slice().sort((a, b) => (choreDoneNow(a) ? 1 : 0) - (choreDoneNow(b) ? 1 : 0) || (a.when || '').localeCompare(b.when || ''));
   const rows = ord.map((c) => {
     const dn = choreDoneNow(c), late = !dn && c.when && c.when < t;
-    const bits = [c.rep ? REPL[c.rep] : (c.freq || ''), c.rep && dn && c.when ? 'следующий раз ' + fmtD(c.when) : (late ? 'просрочено с ' + fmtD(c.when) : (c.when && !dn ? (c.when === t ? 'сегодня' : 'до ' + fmtD(c.when)) : ''))].filter(Boolean);
+    const bits = [c.rep ? REPL[c.rep] : (c.freq || ''), c.rep && dn && c.when ? 'следующий раз ' + fmtD(c.when) : (late ? 'просрочено с ' + fmtD(c.when) : (c.when && !dn ? (c.when === t ? 'сегодня' + (c.time ? ' в ' + c.time : '') : 'до ' + fmtD(c.when) + (c.time ? ' ' + c.time : '')) : ''))].filter(Boolean);
     return '<div class="li ' + (dn ? 'dn' : '') + (late ? ' late' : '') + '">' + ckb('chores', c.id, dn) + '<div class="t">' + esc(c.name) + (bits.length ? '<small>' + esc(bits.join(' · ')) + '</small>' : '') + '</div><button class="who2 ' + c.who + '" data-act="swapWho" data-id="' + c.id + '" aria-label="Передать дело">' + PEOPLE[c.who] + '</button>' + pen('chores', c.id) + '</div>';
   }).join('');
   return th('Дела по дому', 'Отметьте сделанное. Дела с повтором вернутся сами, когда придёт срок. Нажмите на имя, чтобы передать дело.') +
@@ -89,7 +89,7 @@ PINW.chores.short = () => { const l = choreDue(); return ['Дела по дом�
 
 /* ---- схемы и действия ---- */
 const SCH2 = {
-  chores: { t: 'Новое дело', n: 'дело', f: () => [T('name', 'Что сделать', { req: 1 }), T('rep', 'Повтор', { type: 'select', options: Object.keys(REPL).map((k) => [k, REPL[k]]) }), T('when', 'Когда делать', { type: 'date' }), T('who', 'На ком', { type: 'select', options: [['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Сделано', { type: 'check' })], mk: () => ({ rep: '', when: '', who: 'a', done: false, freq: '', last: '', prev: '' }) },
+  chores: { t: 'Новое дело', n: 'дело', f: () => [T('name', 'Что сделать', { req: 1 }), T('rep', 'Повтор', { type: 'select', options: Object.keys(REPL).map((k) => [k, REPL[k]]) }), T('when', 'Когда делать', { type: 'date' }), T('time', 'Во сколько', { type: 'time' }), T('who', 'На ком', { type: 'select', options: [['a', 'Кристина'], ['b', 'Гриша']] }), T('done', 'Сделано', { type: 'check' })], mk: () => ({ rep: '', when: '', who: 'a', done: false, freq: '', last: '', prev: '' }) },
 };
 ['p_a_gifts', 'p_b_gifts'].forEach((k) => { SCH2[k] = { t: 'Новый подарок', n: 'подарок', f: () => [T('name', 'Что подарить', { req: 1 }), T('price', 'Примерная цена'), T('url', 'Ссылка на товар', { type: 'url', ph: 'https://…' }), T('when', 'К какой дате', { type: 'date' }), T('note', 'Заметка'), T('done', 'Уже подарено', { type: 'check' })], mk: () => ({ price: '', url: '', when: '', note: '', done: false }) }; });
 const QA2 = {};

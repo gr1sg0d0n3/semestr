@@ -96,16 +96,18 @@ def list_start(kind, text, who, chat):
 
 
 def list_finish(chat, d, to):
-    me = d['who']; today = datetime.now(A.TZ).date().isoformat()
+    me = d['who']; today = d.get('date') or datetime.now(A.TZ).date().isoformat(); tm = d.get('time', '')
     key = 'buys' if d['kind'] == 'buys' else 'chores'
     lst = E.kv_get(key, [])
     for x in d['items']:
         if key == 'buys':
             lst.append({'id': 'b' + os.urandom(4).hex(), 'name': x, 'when': '', 'who': to, 'note': '', 'done': False})
         else:
-            lst.append({'id': 'c' + os.urandom(4).hex(), 'name': x, 'rep': '', 'when': today, 'who': to, 'done': False, 'freq': '', 'last': '', 'prev': ''})
+            lst.append({'id': 'c' + os.urandom(4).hex(), 'name': x, 'rep': '', 'when': today, 'time': tm, 'who': to, 'done': False, 'freq': '', 'last': '', 'prev': ''})
     E.kv_put(key, lst)
     body = '\n'.join('• ' + x for x in d['items'])
+    if key == 'chores':
+        body += '\nКогда: ' + when_text(today, tm)
     if key == 'buys':
         head = ('добавила' if me == 'a' else 'добавил') + ' в покупки' + ((' (покупает: %s)' % NAMES[to]) if to else '')
     else:
@@ -120,6 +122,49 @@ def list_finish(chat, d, to):
     say(chat, 'Готово: %d на сайте (%s).' % (len(d['items']), sent))
 
 
+# ---------- дата и время дела ----------
+def when_text(date, tm):
+    t = datetime.now(A.TZ).date(); w = ''
+    try:
+        dd = datetime.strptime(date, '%Y-%m-%d').date(); n = (dd - t).days
+        w = 'сегодня' if n == 0 else 'завтра' if n == 1 else dd.strftime('%d.%m.%Y')
+    except Exception:
+        w = date or 'сегодня'
+    return w + ((' в ' + tm) if tm else '')
+
+
+def ask_when(chat, d):
+    d['await'] = ''
+    _put(chat, d)
+    say(chat, 'Когда сделать? Сейчас: %s.\nМеняем дату или время?' % when_text(d['date'], d.get('time', '')),
+        [[('✅ Оставить', 'l:d:ok'), ('Завтра', 'l:d:tm')], [('📅 Другая дата', 'l:d:dt'), ('🕒 Время', 'l:d:tt')]])
+
+
+def parse_when(text, d):
+    low = text.lower(); today = datetime.now(A.TZ).date(); ch = False
+    from datetime import timedelta
+    if 'послезавтра' in low:
+        d['date'] = (today + timedelta(days=2)).isoformat(); ch = True
+    elif 'завтра' in low:
+        d['date'] = (today + timedelta(days=1)).isoformat(); ch = True
+    elif 'сегодня' in low:
+        d['date'] = today.isoformat(); ch = True
+    m = re.search(r'(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?', text)
+    if m:
+        try:
+            y = int(m.group(3) or today.year); y = y + 2000 if y < 100 else y
+            dt = datetime(y, int(m.group(2)), int(m.group(1))).date()
+            if not m.group(3) and dt < today:
+                dt = dt.replace(year=dt.year + 1)
+            d['date'] = dt.isoformat(); ch = True
+        except ValueError:
+            pass
+    t = re.search(r'(?<!\d)([01]?\d|2[0-3])[:.\-]([0-5]\d)(?!\d)', text if not m else text.replace(m.group(0), ' '))
+    if t:
+        d['time'] = '%02d:%02d' % (int(t.group(1)), int(t.group(2))); ch = True
+    return ch
+
+
 # ---------- события ----------
 def start_list(kind, chat, who):
     _put(chat, {'kind': 'wait_' + kind, 'who': who})
@@ -128,6 +173,12 @@ def start_list(kind, chat, who):
 
 def incoming_text(chat, who, text):
     d = _get(chat)
+    if d and d.get('await') and d.get('kind') == 'chores':
+        if not parse_when(text, d):
+            say(chat, 'Не разобрал. Напишите, например: 25.10, завтра, 18:30 или 25.10 18:30.')
+            return True
+        ask_when(chat, d)
+        return True
     if d and d['kind'] in ('wait_buys', 'wait_chores'):
         list_start(d['kind'][5:], text, who, chat)
         return True
@@ -163,5 +214,20 @@ def callback(cq):
             return say(chat, 'Кто купит?' if d['kind'] == 'buys' else 'Кто сделает?', who_rows('l:w:', d['kind'] == 'buys'))
         if p[1] == 'w':
             to = '' if p[2] == 'x' else p[2]
-            done('Исполнитель: %s' % (NAMES.get(to) or 'кто угодно')); _put(chat, None)
+            done('Исполнитель: %s' % (NAMES.get(to) or 'кто угодно'))
+            if d['kind'] == 'chores':
+                d['to'] = to; d['date'] = datetime.now(A.TZ).date().isoformat(); d['time'] = ''
+                return ask_when(chat, d)
+            _put(chat, None)
             return list_finish(chat, d, to)
+    if p[0] == 'l' and p[1] == 'd' and d['kind'] == 'chores':
+        from datetime import timedelta
+        a = p[2]
+        if a == 'ok':
+            done('Когда: ' + when_text(d['date'], d.get('time', ''))); _put(chat, None)
+            return list_finish(chat, d, d.get('to', ''))
+        if a == 'tm':
+            d['date'] = (datetime.now(A.TZ).date() + timedelta(days=1)).isoformat(); done('Дата: завтра'); return ask_when(chat, d)
+        d['await'] = a; _put(chat, d)
+        done('Меняем ' + ('дату' if a == 'dt' else 'время'))
+        return say(chat, 'Напишите дату, например 25.10 или «завтра» (можно сразу со временем: 25.10 18:30).' if a == 'dt' else 'Напишите время, например 18:30.')
