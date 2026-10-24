@@ -65,7 +65,7 @@ function openGeo(forId) {
 /* ---------- страница «Места» ---------- */
 function placesPage() {
   const t = UI.placeTab, v = S.places.filter((p) => p.visited), hh = S.places.filter((p) => !p.visited), items = t === 'h' ? hh : v;
-  const rows = items.map((p) => '<div class="li pl"><div class="plh">' + ckb('places', p.id, p.visited, 'visited') + '<div class="t">' + esc(p.name) + (p.note ? '<small>' + esc(p.note) + '</small>' : '') + '</div><span class="m">' + (p.visited ? (p.date ? fmtD(p.date) : 'были') : 'хотим') + '</span>' +
+  const rows = items.map((p) => '<div class="li plc"><div class="plh">' + ckb('places', p.id, p.visited, 'visited') + '<div class="t">' + esc(p.name) + (p.note ? '<small>' + esc(p.note) + '</small>' : '') + '</div><span class="m">' + (p.visited ? (p.date ? fmtD(p.date) : 'были') : 'хотим') + '</span>' +
     (hasXY(p) ? '<button class="ib" data-act="mapFocus" data-id="' + p.id + '" aria-label="Показать на карте">' + ic('pin', 18) + '</button>' : '<button class="ib" data-act="geoFor" data-id="' + p.id + '" aria-label="Найти на карте" title="Найти на карте">' + ic('search', 18) + '</button>') + pen('places', p.id) + '</div>' + picsHtml('places', p) + '</div>').join('');
   return th('Места', 'Где уже были и куда хочется. Розовые метки это были, серые это хотим.') +
     '<div class="acts in" style="--i:1;margin-bottom:12px">' + btn('Найти место', 'geoFind', { c: 'main', i: 'search' }) + btn('Отметить на карте', 'mapPick', { i: 'pin' }) + btn('Случайное место', 'rndGo', { i: 'dice', d: 'data-v="place"' }) + '</div>' +

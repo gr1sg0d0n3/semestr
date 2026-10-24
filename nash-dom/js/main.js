@@ -21,7 +21,7 @@ function commit() { persist(); render({ keep: true }); }
 const findIn = (arr, id) => arr.find((x) => x.id === id);
 
 /* ====== отрисовка ====== */
-const LABEL = { market: 'Маркетплейс', recipes: 'Рецепты', random: 'Случайное', gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', series: 'Сериалы', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
+const LABEL = { market: 'Маркетплейс', recipes: 'Рецепты', random: 'Случайное', gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', hstudy: 'Моя учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', series: 'Сериалы', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
 function route() { const p = location.hash.replace(/^#\/?/, '').split('/'); return { zone: p[0] || 'home', page: p[1] || '' }; }
 let lastKey = '', focusId = '';
 function render(o) {
@@ -31,7 +31,7 @@ function render(o) {
   let html;
   const z = r.zone, pg = r.page;
   if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage('her') : pg === 'lists' ? listsPage('her') : pg === 'gifts' ? giftsPage('her') : herPage());
-  else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'gifts' ? giftsPage('his') : pg === 'server' ? serverPage() : hisPage());
+  else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'gifts' ? giftsPage('his') : pg === 'study' ? hstudyPage() : pg === 'server' ? serverPage() : hisPage());
   else if (z === 'tog') { const P = { films: filmsPage, series: serPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage, note: notesPage, us: usPage, market: marketPage, recipes: recipesPage, random: randomPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
   else html = homePage();
   const same = key === lastKey;
@@ -72,7 +72,7 @@ const ACT = {
       S[k] = S[k].filter((x) => x !== it); if (k === 'qs') { delete S.qa[it.id]; if (S.qcur === it.id) S.qcur = ''; } if (k === 'trips' && UI.trip === it.id) UI.trip = ''; commit(); toast('Удалено');
     } });
   },
-  tg(el) { const it = findIn(S[el.dataset.k], el.dataset.id); if (!it) return; const f = el.dataset.f || 'done'; if (el.dataset.k === 'chores' && f === 'done') choreTick(it); else it[f] = !it[f]; commit(); },
+  tg(el) { const it = findIn(S[el.dataset.k], el.dataset.id); if (!it) return; const f = el.dataset.f || 'done'; if (el.dataset.k === 'chores' && f === 'done') choreTick(it); else it[f] = !it[f]; if (el.dataset.k === 'prem' && f === 'want') premToQueue(it); commit(); },
   /* учёба */
   addSub() { openForm({ title: 'Новый предмет', fields: [T('name', 'Название предмета', { req: 1 })], save: 'Добавить', onSave(v) { S.study.push({ id: uid(), name: v.name, items: [] }); commit(); } }); },
   edSub(el) { const s = findIn(S.study, el.dataset.id); openForm({ title: 'Предмет', fields: [T('name', 'Название предмета', { req: 1 })], values: s, onSave(v) { s.name = v.name; commit(); }, onDelete() { S.study = S.study.filter((x) => x !== s); commit(); } }); },

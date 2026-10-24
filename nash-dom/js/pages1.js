@@ -173,6 +173,6 @@ function listsPage(zone) {
 
 /* ====== его страница и сервер ====== */
 function hisPage() {
-  const acts = btn('Выбрать фильм', 'pickFilm', { c: 'main', i: 'film' }) + btn('Сервер', 'go', { i: 'server', d: 'data-href="#/his/server"' }) + btn('Добавить', 'add', { i: 'plus', w: 2, d: 'data-k="lists"' }) + pinBtn('his');
+  const acts = btn('Выбрать фильм', 'pickFilm', { c: 'main', i: 'film' }) + btn('Моя учёба', 'go', { i: 'pen', d: 'data-href="#/his/study"' }) + btn('Сервер', 'go', { i: 'server', d: 'data-href="#/his/server"' }) + btn('Добавить', 'add', { i: 'plus', w: 2, d: 'data-k="lists"' }) + pinBtn('his');
   return hd('Его выбор', todayLong(), acts) + pinHeroes('his') + '<div class="grid">' + pinCards('his', 2) + '</div>';
 }

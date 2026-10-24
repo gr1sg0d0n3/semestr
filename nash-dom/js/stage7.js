@@ -20,7 +20,7 @@ function serBar(w, sr) {
 function serPage() {
   const me = serTarget(), id = UI.serId, sr = id ? S.series.find((x) => x.id === id) : null;
   if (sr) return serDetail(sr, me);
-  const rows = S.series.map((s) => '<button class="sc glass in" data-act="serOpen" data-id="' + s.id + '">' + (s.poster ? '<img src="' + esc(s.poster) + '" alt="">' : '<i class="np"></i>') +
+  const rows = S.series.map((s) => '<button class="srk glass in" data-act="serOpen" data-id="' + s.id + '">' + (s.poster ? '<img src="' + esc(s.poster) + '" alt="">' : '<i class="np"></i>') +
     '<div class="sx"><b>' + esc(s.title) + '</b><span>' + esc([s.year, (s.seasons || []).length ? (s.seasons || []).length + ' сез.' : ''].filter(Boolean).join(' · ')) + '</span>' + serBar('a', s) + serBar('b', s) + '</div></button>').join('');
   return th('Сериалы', 'Выберите сериал и отмечайте серии. У каждого свой прогресс, и он виден обоим.') +
     '<div class="acts in">' + btn('Найти сериал', 'serFind', { c: 'main', i: 'search' }) + btn('Добавить вручную', 'serNew', {}) + '</div>' +
@@ -91,3 +91,35 @@ const ACT7 = {
     const k = serKey(me); S[k] = S[k] || {}; const p = (S[k][id] || []).slice(); while (p.length < sr.seasons.length) p.push(''); p[si] = (full ? '0' : '1').repeat(n); S[k][id] = p; commit();
   },
 };
+
+/* ====== «Хотим» из премьер попадает в очередь кино ====== */
+function premToQueue(p) {
+  const i = S.films.findIndex((f) => f.fromPrem === p.id);
+  if (p.want) {
+    if (i < 0 && !S.films.some((f) => f.title === p.title)) { S.films.push({ id: uid(), title: p.title, note: 'Премьера ' + (p.date ? fmtD(p.date) : ''), seen: false, ra: 0, rb: 0, poster: p.poster || '', year: (p.date || '').slice(0, 4), fromPrem: p.id }); toast('Добавлено в очередь кино'); }
+  } else if (i >= 0 && !S.films[i].seen) { S.films.splice(i, 1); toast('Убрано из очереди кино'); }
+}
+
+/* ====== его учёба ====== */
+const HST = () => (S.hstudy = S.hstudy || []);
+function hstudyPage() {
+  const all = HST().reduce((a, s) => a.concat(s.items), []), dn = all.filter((i) => i.done).length, pc = all.length ? Math.round(dn * 100 / all.length) : 0;
+  const rows = HST().map((s) => '<section class="subj glass in"><div class="sh"><h3>' + esc(s.name) + '</h3><button class="ib" data-act="hsEdSub" data-id="' + s.id + '" aria-label="Изменить предмет">' + ic('pen', 18) + '</button></div><div class="chs">' +
+    s.items.map((i) => '<div class="chk2 ' + (i.done ? 'dn' : '') + '"><button class="cb" data-act="hsTg" data-id="' + i.id + '" data-s="' + s.id + '" aria-pressed="' + !!i.done + '"><span class="bx">' + (i.done ? ic('check', 14, 3) : '') + '</span>' + esc(i.label) + (i.date ? ' <small>до ' + esc(fmtD(i.date)) + '</small>' : '') + '</button><button class="ib" data-act="hsEdIt" data-id="' + i.id + '" data-s="' + s.id + '" aria-label="Изменить пункт">' + ic('pen', 14) + '</button></div>').join('') +
+    '<button class="chk2 addc" data-act="hsAddIt" data-s="' + s.id + '">' + ic('plus', 16, 2) + 'Пункт</button></div></section>').join('');
+  return th('Моя учёба', 'Предметы и задачи. Отмечайте готовое, у каждой задачи может быть срок.') +
+    '<section class="glass box in"><h2>Прогресс</h2><div class="spr b"><div class="sbr"><i style="width:' + pc + '%"></i></div><span class="sn">' + dn + ' из ' + all.length + '</span></div></section>' +
+    '<div class="acts in">' + btn('Добавить предмет', 'hsAddSub', { c: 'main', i: 'plus', w: 2 }) + '</div>' + (rows || '<section class="glass box">' + empty('Предметов пока нет. Добавьте первый.') + '</section>');
+}
+function hsItForm(s, it) {
+  openForm({ title: it ? 'Пункт' : 'Новый пункт', save: it ? 'Сохранить' : 'Добавить', fields: [T('label', 'Что сделать', { req: 1 }), T('date', 'Срок', { type: 'date' }), T('done', 'Готово', { type: 'check' })], values: it || {},
+    onDelete: it ? () => { s.items = s.items.filter((x) => x !== it); commit(); } : null,
+    onSave(v) { if (it) Object.assign(it, v); else s.items.push({ id: uid(), label: v.label, date: v.date, done: v.done }); commit(); } });
+}
+Object.assign(ACT7, {
+  hsAddSub() { openForm({ title: 'Новый предмет', fields: [T('name', 'Название предмета', { req: 1 })], save: 'Добавить', onSave(v) { HST().push({ id: uid(), name: v.name, items: [] }); commit(); } }); },
+  hsEdSub(el) { const s = findIn(HST(), el.dataset.id); openForm({ title: 'Предмет', fields: [T('name', 'Название предмета', { req: 1 })], values: s, onSave(v) { s.name = v.name; commit(); }, onDelete() { S.hstudy = HST().filter((x) => x !== s); commit(); } }); },
+  hsAddIt(el) { hsItForm(findIn(HST(), el.dataset.s), null); },
+  hsEdIt(el) { const s = findIn(HST(), el.dataset.s); hsItForm(s, findIn(s.items, el.dataset.id)); },
+  hsTg(el) { const s = findIn(HST(), el.dataset.s), i = findIn(s.items, el.dataset.id); i.done = !i.done; commit(); },
+});
