@@ -68,7 +68,8 @@ function hisSide(page) {
 }
 const TNAV = [['films', 'Кино'], ['prem', 'Премьеры'], ['places', 'Места'], ['trips', 'Поездки'], ['dates', 'Даты'], ['menu', 'Меню'], ['kitchen', 'Кухня'], ['quest', 'Вопрос дня'], ['chores', 'Дела по дому'], ['buys', 'Покупки'], ['recipes', 'Рецепты'], ['market', 'Маркетплейс'], ['random', 'Случайное'], ['note', 'Заметка дня'], ['us', 'Мы вместе']];
 function tnav(page) {
-  return '<nav class="tnav glass" aria-label="Общие разделы"><div class="tl">' + TNAV.map((t) => '<a href="#/tog/' + t[0] + '"' + (page === t[0] ? ' class="on"' : '') + '>' + t[1] + '</a>').join('') + '</div><div class="seg" aria-label="Чья половина"><a href="#/her">Её</a><a class="on" href="#/tog">Общее</a><a href="#/his">Его</a></div></nav>';
+  const cur = (TNAV.find((t) => t[0] === page) || [0, 'Общее'])[1];
+  return '<nav class="tnav glass" aria-label="Общие разделы"><button class="tcur" data-act="tnavToggle" aria-expanded="false" aria-controls="tl">' + ic('menu', 18) + '<span>' + esc(cur) + '</span><i class="chv" aria-hidden="true"></i></button><div class="tl" id="tl">' + TNAV.map((t) => '<a href="#/tog/' + t[0] + '"' + (page === t[0] ? ' class="on" aria-current="page"' : '') + '>' + t[1] + '</a>').join('') + '</div><div class="seg" aria-label="Чья половина"><a href="#/her">Её</a><a class="on" href="#/tog">Общее</a><a href="#/his">Его</a></div></nav>';
 }
 function layout(zone, page, label, main) {
   let body;

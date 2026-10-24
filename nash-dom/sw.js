@@ -1,5 +1,5 @@
-const V='nashdom-v8';
-const FILES=['./','index.html','css/app.css','js/assets.js','js/core.js','js/pages1.js', 'js/pins.js','js/pages2.js','js/stage2.js','js/stage3.js','js/stage4.js','js/stage5.js','vendor/leaflet/leaflet.js','vendor/leaflet/leaflet.css','js/sync.js','js/main.js','manifest.webmanifest','icons/icon.svg','fonts/literata-r.woff','fonts/literata-m.woff','fonts/literata-sb.woff','fonts/literata-i.woff','fonts/literata-mi.woff'];
+const V='nashdom-v10';
+const FILES=['./','index.html','css/app.css','js/assets.js','js/core.js','js/pages1.js', 'js/pins.js','js/pages2.js','js/stage2.js','js/stage3.js','js/stage4.js','js/stage5.js','js/stage6.js','vendor/leaflet/leaflet.js','vendor/leaflet/leaflet.css','js/sync.js','js/main.js','manifest.webmanifest','icons/icon.svg','fonts/literata-r.woff','fonts/literata-m.woff','fonts/literata-sb.woff','fonts/literata-i.woff','fonts/literata-mi.woff'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{

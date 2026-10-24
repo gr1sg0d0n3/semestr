@@ -134,7 +134,7 @@ const QA = {
 /* ====== данные: сохранить, загрузить, сбросить ====== */
 function openData() {
   const dlg = $('#dlg');
-  dlg.innerHTML = '<div class="df"><h2>Данные сайта</h2><p class="dn2">Сейчас всё сохраняется на этом устройстве, в браузере. Чтобы перенести записи на другой телефон, сохраните файл и загрузите его там. Если сайт открыт на bestgirllovestudy.ru и вы вошли, телефоны синхронизируются сами.</p><div class="dcol">' + srvBlock() + '<button class="btn main" data-d="export">' + ic('plus', 18, 2) + 'Сохранить данные в файл</button><label class="btn filebtn">Загрузить данные из файла<input type="file" accept="application/json,.json" data-d="import" hidden></label><button class="btn danger" data-d="reset">Вернуть примеры и очистить мои записи</button></div><div class="da"><span class="sp"></span><button class="btn" data-d="close">Закрыть</button></div></div>';
+  dlg.innerHTML = '<div class="df"><h2>Настройки</h2><p class="dn2">Сейчас всё сохраняется на этом устройстве, в браузере. Чтобы перенести записи на другой телефон, сохраните файл и загрузите его там. Если сайт открыт на bestgirllovestudy.ru и вы вошли, телефоны синхронизируются сами.</p><div class="dcol">' + srvBlock() + '<button class="btn main" data-d="export">' + ic('plus', 18, 2) + 'Сохранить данные в файл</button><label class="btn filebtn">Загрузить данные из файла<input type="file" accept="application/json,.json" data-d="import" hidden></label><button class="btn danger" data-d="reset">Вернуть примеры и очистить мои записи</button></div><div class="da"><span class="sp"></span><button class="btn" data-d="close">Закрыть</button></div></div>';
   dlg.showModal();
 }
 function srvBlock() {
@@ -217,7 +217,7 @@ document.addEventListener('touchcancel', endDrag, { passive: true });
 document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
-Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3, ACT4);
+Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3, ACT4, ACT6);
 load(); render(); NDS.init();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 

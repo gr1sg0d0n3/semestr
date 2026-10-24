@@ -376,10 +376,13 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
   .subfilter .rowi.on{border-color:var(--burg)}
   .cont{padding:50px 16px 24px}
   .tnavw{top:40px;margin:0 -16px;padding:4px 16px 10px}
-  .tnav{width:100%;border-radius:26px;padding:4px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-  .tnav::-webkit-scrollbar{display:none}
-  .tl{flex-wrap:nowrap}.seg{display:none}
-  .tl a{min-height:44px;padding:0 16px}
+  .tnav{width:100%;border-radius:26px;padding:4px;flex-direction:column;align-items:stretch;gap:0}
+  .tcur{display:flex}
+  .tl{display:none;flex-wrap:wrap;gap:6px;padding:8px 6px 8px;max-height:min(56vh,420px);overflow-y:auto}
+  .tnav.open .tl{display:grid;grid-template-columns:repeat(2,1fr)}
+  .tnav .tl a{justify-content:center;text-align:center;min-height:46px;padding:0 10px;white-space:normal;background:rgba(255,255,255,.55);font-size:15px}
+  .tnav .tl a.on{background:var(--burg);color:#fff}
+  .seg{display:none}
   .tri{margin-top:10px}
   .two{grid-template-columns:1fr}
   .box{padding:20px 18px 20px;border-radius:26px}
@@ -559,3 +562,40 @@ dialog::backdrop{background:rgba(60,20,40,.35);backdrop-filter:blur(6px)}
 .wd .note{font-size:13px;color:var(--ink3);padding-top:10px;line-height:1.4}
 .peer em{font-style:normal;min-width:0}
 .peer > span:first-child > i{margin-top:0}
+
+/* ===== панель разделов ===== */
+.tcur{display:none;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 16px;border:0;border-radius:22px;background:transparent;color:inherit;font:inherit;font-size:17px;font-weight:600;text-align:left}
+.tcur span{flex:1}
+.tcur .chv{width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .25s ease;opacity:.7}
+.tnav.open .tcur .chv{transform:rotate(-135deg) translateY(-2px)}
+.tnav.open .tcur{background:rgba(130,40,74,.08)}
+/* ===== поля в окнах ===== */
+.df input[type=date],.df input[type=time]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;max-width:100%;box-sizing:border-box;display:block;text-align:left}
+.df input[type=date]::-webkit-date-and-time-value,.df input[type=time]::-webkit-date-and-time-value{text-align:left}
+.df select{min-width:0;max-width:100%;box-sizing:border-box}
+/* ===== вопрос дня ===== */
+.hero.qh{align-items:center;gap:8px;padding:34px 26px 28px}
+.qh .qt{text-wrap:balance}
+.qh .k2{align-self:center;margin:6px 0 14px;padding:4px 14px;border-radius:999px;background:rgba(130,40,74,.08);color:var(--ink2)}
+.qh .acts{justify-content:center;align-items:center}
+.qh .acts .btn,.qh .acts .ib{min-height:46px}
+.qh .acts .ib{width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid rgba(130,40,74,.18)}
+/* ===== кино: список ===== */
+.li.fl{flex-wrap:wrap;row-gap:8px}
+.li.fl .t{flex:1 1 55%;min-width:0;overflow-wrap:break-word}
+
+.hlp{border:1px solid rgba(130,40,74,.18);border-radius:18px;background:rgba(255,255,255,.6);padding:0 16px}
+.hlp summary{min-height:46px;display:flex;align-items:center;cursor:pointer;font-weight:600;list-style:none}
+.hlp summary::-webkit-details-marker{display:none}
+.hlp[open] summary{border-bottom:1px solid var(--line);margin-bottom:6px}
+.hlp h4{margin:12px 0 4px;font-size:14px;color:var(--ink3);font-weight:600}
+.hlp ul{margin:0 0 10px;padding-left:18px;font-size:15px;line-height:1.45}
+.hlp p{margin:0 0 10px;font-size:15px;line-height:1.45}
+/* безопасные карточки выбранного фильма */
+.rres.ok{min-width:0;max-width:100%;overflow:hidden;box-sizing:border-box}
+.rres.ok .rtx{min-width:0;flex:1 1 auto;overflow-wrap:anywhere}
+.rpo{max-width:100%;height:auto;aspect-ratio:2/3;object-fit:cover}
+.sh2{min-width:0;max-width:100%}
+.sh2 .st b{overflow-wrap:anywhere}
+.sh2 .btn{flex:none}
+.srch,#dlg .srch{max-width:100%;min-width:0;box-sizing:border-box}

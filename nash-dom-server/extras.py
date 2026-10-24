@@ -200,27 +200,60 @@ _kpg = {}
 
 
 def film_random_kp(kind, genre, minr):
+    minr = int(float(minr or 0))
     if not _kpg:
-        for g in kp('/v2.2/films/filters').get('genres', []):
-            _kpg[(g.get('genre') or '').lower()] = g.get('id')
-    q = {'order': 'NUM_VOTE', 'type': 'TV_SERIES' if kind == 'tv' else 'FILM', 'ratingFrom': minr or 5, 'ratingTo': 10, 'page': 1}
+        try:
+            for g in kp('/v2.2/films/filters').get('genres', []):
+                _kpg[(g.get('genre') or '').lower()] = g.get('id')
+        except Exception as e:
+            print('kp filters error', repr(e), flush=True)
+    base = {'order': 'NUM_VOTE', 'type': 'TV_SERIES' if kind == 'tv' else 'FILM', 'ratingFrom': minr or 1, 'ratingTo': 10, 'page': 1}
     gid = _kpg.get((genre or '').lower())
+    attempts = []
     if gid:
-        q['genres'] = gid
-    first = kp('/v2.2/films', **q)
-    q['page'] = random.randint(1, max(1, min(int(first.get('totalPages') or 1), 15)))
-    r = first if q['page'] == 1 else kp('/v2.2/films', **q)
-    res = r.get('items', [])
-    if not res:
-        raise Fail('Ничего не нашлось, смягчите фильтры')
-    x = random.choice(res)
+        attempts.append(dict(base, genres=gid))
+    attempts.append(dict(base))
+    attempts.append({'order': 'NUM_VOTE', 'type': base['type'], 'page': 1})
+    x = None
+    for q in attempts:
+        try:
+            first = kp('/v2.2/films', **q)
+            pages = max(1, min(int(first.get('totalPages') or 1), 15))
+            r = first
+            if pages > 1:
+                r = kp('/v2.2/films', **dict(q, page=random.randint(1, pages)))
+            res = r.get('items') or first.get('items') or []
+            print('kp random', q, 'items', len(res), flush=True)
+            if res:
+                x = random.choice(res); break
+        except Fail:
+            raise
+        except Exception as e:
+            print('kp random error', q, repr(e), flush=True)
+    if x is None and kind != 'tv':  # запасной путь: список лучших фильмов
+        try:
+            top = kp('/v2.2/films/top', type='TOP_250_BEST_FILMS', page=random.randint(1, 13)).get('films') or []
+            top = [f for f in top if float(f.get('rating') or 0) >= minr] or top
+            if top:
+                f = random.choice(top)
+                x = {'kinopoiskId': f.get('filmId'), 'nameRu': f.get('nameRu'), 'nameOriginal': f.get('nameEn'), 'year': f.get('year'), 'ratingKinopoisk': f.get('rating'), 'posterUrlPreview': f.get('posterUrlPreview')}
+        except Fail:
+            raise
+        except Exception as e:
+            print('kp top error', repr(e), flush=True)
+    if x is None:
+        raise Fail('Кинопоиск ничего не вернул. Попробуйте источник TMDB или снимите фильтры')
     d = {}
     try:
         d = kp('/v2.2/films/%s' % x['kinopoiskId'])
     except Exception:
         pass
+    try:
+        rk = round(float(x.get('ratingKinopoisk') or 0), 1)
+    except ValueError:
+        rk = 0
     it = {'src': 'kp', 'id': x['kinopoiskId'], 'type': 'tv' if kind == 'tv' else 'movie', 'title': x.get('nameRu') or x.get('nameOriginal') or '', 'orig': x.get('nameOriginal') or '', 'year': str(x.get('year') or ''),
-          'overview': (d.get('description') or d.get('shortDescription') or '')[:700], 'rtmdb': 0, 'rkp': round(float(x.get('ratingKinopoisk') or 0), 1), '_pu': x.get('posterUrlPreview') or x.get('posterUrl') or ''}
+          'overview': (d.get('description') or d.get('shortDescription') or '')[:700], 'rtmdb': 0, 'rkp': rk, '_pu': x.get('posterUrlPreview') or x.get('posterUrl') or ''}
     return finish_posters([it])[0]
 
 
@@ -305,11 +338,11 @@ PLACE_CATS = {
 OVERPASS = ('https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter')
 
 
-def overpass(q):
+def overpass(q, timeout=12):
     last = None
     for ep in OVERPASS:
         try:
-            return json.loads(http(ep, {**UA, 'Content-Type': 'application/x-www-form-urlencoded'}, urllib.parse.urlencode({'data': q}).encode(), timeout=30))
+            return json.loads(http(ep, {**UA, 'Content-Type': 'application/x-www-form-urlencoded'}, urllib.parse.urlencode({'data': q}).encode(), timeout=timeout))
         except Exception as e:
             last = e
     raise last
@@ -328,14 +361,18 @@ def place_random(cat):
     key = cat if cat in PLACE_CATS else random.choice(list(PLACE_CATS))
     label, filters = PLACE_CATS[key]
     els = []
-    for _ in range(5):
-        bb = random_tile()
-        q = '[out:json][timeout:25];(' + ''.join('nwr%s["name"](%.4f,%.4f,%.4f,%.4f);' % ((f,) + bb) for f in filters) + ');out center 80;'
-        els = [x for x in overpass(q).get('elements', []) if x.get('tags', {}).get('name')]
-        if els:
+    t0 = time.time()
+    boxes = [random_tile(), random_tile(), (59.88, 30.15, 60.00, 30.50)]
+    for bb in boxes:
+        if els or time.time() - t0 > 24:
             break
+        q = '[out:json][timeout:10];(' + ''.join('nwr%s["name"](%.4f,%.4f,%.4f,%.4f);' % ((f,) + bb) for f in filters) + ');out center 80;'
+        try:
+            els = [x for x in overpass(q, timeout=min(12, max(4, 26 - (time.time() - t0)))).get('elements', []) if x.get('tags', {}).get('name')]
+        except Exception as e:
+            print('overpass error', repr(e)[:160], flush=True)
     if not els:
-        raise Fail('В этот раз ничего не нашлось, нажмите ещё раз')
+        raise Fail('Источник карт (OpenStreetMap) сейчас не отвечает или ничего не нашёл. Нажмите ещё раз' if time.time() - t0 > 20 else 'В этот раз ничего не нашлось, нажмите ещё раз')
     good = [x for x in els if any(k in x['tags'] for k in ('website', 'opening_hours', 'wikipedia', 'description', 'contact:website'))]
     x = random.choice(good if len(good) >= 3 else els)
     t = x['tags']

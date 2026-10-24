@@ -5,7 +5,7 @@ IC.copy = 'M9 9h11v11H9z M5 15V4h11';
 /* ---------- сервер ---------- */
 async function srv(path) {
   if (!NDS.on) { NDS.reconnect(); return { error: 'Нет связи с сервером сайта. Проверьте, что сайт открыт по адресу bestgirllovestudy.ru. Если вход потерян: шестерёнка → «Войти заново по коду».' }; }
-  try { const r = await NDS.api(path, { ms: 40000 }); return r.j || { error: 'Нет ответа сервера' }; } catch (e) { return { error: 'Нет связи с сервером' }; }
+  try { const r = await NDS.api(path, { ms: 55000 }); return r.j || { error: 'Нет ответа сервера' }; } catch (e) { return { error: 'Нет связи с сервером' }; }
 }
 async function copyText(t) {
   try { await navigator.clipboard.writeText(t); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); } catch (x) { /* нет */ } a.remove(); }
