@@ -61,24 +61,36 @@ def create_from_text(chat, text):
         c = wgeasy.create(name)
         monitor.known_add({'iface': wgeasy.IFACE, 'pub8': c['pub'][:8]})
         send_qr(chat, c, 'Клиент «%s» создан. ' % name)
+        send_conf(chat, c)
     except wgeasy.Err as e:
         A.tg('sendMessage', chat_id=chat, text='Не получилось: %s' % e)
 
 
-def send_qr(chat, c, prefix=''):
-    png = wgeasy.qr_png(c['id'])
-    cap = '%sОтсканируйте в приложении AmneziaWG. В QR зашит ключ клиента, поэтому сообщение удалится через %d мин.' % (prefix, QR_TTL // 60)
+def _send_file(chat, method, field, fname, ctype, data, cap):
+    """Отправляет файл или картинку с защитой от пересылки и удаляет сообщение через QR_TTL секунд."""
     b = '----nd' + os.urandom(8).hex()
     body = b''.join([
         ('--%s\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n%s\r\n' % (b, chat)).encode(),
         ('--%s\r\nContent-Disposition: form-data; name="caption"\r\n\r\n%s\r\n' % (b, cap)).encode(),
         ('--%s\r\nContent-Disposition: form-data; name="protect_content"\r\n\r\ntrue\r\n' % b).encode(),
-        ('--%s\r\nContent-Disposition: form-data; name="photo"; filename="qr.png"\r\nContent-Type: image/png\r\n\r\n' % b).encode(), png, b'\r\n',
+        ('--%s\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\nContent-Type: %s\r\n\r\n' % (b, field, fname, ctype)).encode(), data, b'\r\n',
         ('--%s--\r\n' % b).encode()])
-    req = urllib.request.Request('https://api.telegram.org/bot%s/sendPhoto' % A.TOKEN, data=body, headers={'Content-Type': 'multipart/form-data; boundary=' + b})
+    req = urllib.request.Request('https://api.telegram.org/bot%s/%s' % (A.TOKEN, method), data=body, headers={'Content-Type': 'multipart/form-data; boundary=' + b})
     with urllib.request.urlopen(req, timeout=30) as r:
         mid = json.loads(r.read())['result']['message_id']
     threading.Timer(QR_TTL, lambda: A.tg('deleteMessage', chat_id=chat, message_id=mid)).start()
+
+
+def send_qr(chat, c, prefix=''):
+    png = wgeasy.qr_png(c['id'])
+    cap = '%sОтсканируйте в приложении AmneziaWG. В QR зашит ключ клиента, поэтому сообщение удалится через %d мин.' % (prefix, QR_TTL // 60)
+    _send_file(chat, 'sendPhoto', 'photo', 'qr.png', 'image/png', png, cap)
+
+
+def send_conf(chat, c):
+    name = re.sub(r'[^\w.\-]+', '_', c.get('name') or 'client') or 'client'
+    _send_file(chat, 'sendDocument', 'document', name + '.conf', 'text/plain', wgeasy.config_text(c['id']),
+               'Конфиг клиента. Откройте в приложении AmneziaWG (Поделиться → AmneziaWG) или импортируйте файлом. В файле ключ клиента, сообщение удалится через %d мин.' % (QR_TTL // 60))
 
 
 def card(chat, mid, cid):
@@ -87,7 +99,7 @@ def card(chat, mid, cid):
         return show_menu(chat, mid)
     seen = 'ещё не подключался' if not c['hs'] else 'последнее подключение %s' % time.strftime('%d.%m %H:%M', time.localtime(c['hs']))
     A.tg('editMessageText', chat_id=chat, message_id=mid, text='%s\n%s\nАдрес %s, %s' % (_line(c, int(time.time()))[1], 'Выключен' if not c['enabled'] else 'Включён', c['ips'], seen),
-         reply_markup=kb([[('▶ Включить' if not c['enabled'] else '⏸ Выключить', 'v:t:%d' % cid), ('📷 QR', 'v:q:%d' % cid)], [('🗑 Удалить', 'v:d:%d' % cid)], [('← К списку', 'v:l')]]))
+         reply_markup=kb([[('▶ Включить' if not c['enabled'] else '⏸ Выключить', 'v:t:%d' % cid), ('📷 QR', 'v:q:%d' % cid)], [('📄 Конфиг (.conf)', 'v:f:%d' % cid), ('🗑 Удалить', 'v:d:%d' % cid)], [('← К списку', 'v:l')]]))
 
 
 def callback(cq):
@@ -107,6 +119,8 @@ def callback(cq):
             return card(chat, mid, cid)
         if p[1] == 'q':
             return send_qr(chat, {'id': cid})
+        if p[1] == 'f':
+            return send_conf(chat, next(x for x in wgeasy.clients() if x['id'] == cid))
         if p[1] == 'd':
             c = next(x for x in wgeasy.clients() if x['id'] == cid)
             return A.tg('editMessageText', chat_id=chat, message_id=mid, text='Удалить клиента «%s»? Это устройство сразу потеряет доступ, вернуть его можно только создав нового клиента.' % c['name'],

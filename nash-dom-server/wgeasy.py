@@ -93,3 +93,8 @@ def qr_png(cid):
     if r.returncode or not r.stdout:
         raise Err('Не получилось собрать QR')
     return r.stdout
+
+
+def config_text(cid):
+    """Текст .conf клиента (содержит приватный ключ)."""
+    return call('GET', '/api/client/%d/configuration' % int(cid), raw=True)
