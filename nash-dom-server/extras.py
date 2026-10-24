@@ -625,9 +625,61 @@ def notify_order(txt, who, img):
                     send_photo(r['chat'], path, 'Код для получения')
 
 
+def series_week_lines():
+    st = A.get_state(); out = []
+    fl = [f for f in kv_get('films', []) if not f.get('seen')]
+    if fl:
+        out.append('🎬 В очереди (%d):' % len(fl))
+        out += ['• ' + f.get('title', '') + (' — ' + f['watch'] if f.get('watch') else '') for f in fl[:8]]
+        if len(fl) > 8:
+            out.append('…и ещё %d' % (len(fl) - 8))
+    se = kv_get('series', [])
+    pr = {w: (st.get('serp_' + w, {}).get('v') or {}) for w in 'ab'}
+    rows = []
+    for s in se:
+        tot = sum(s.get('seasons') or [])
+        if not tot:
+            continue
+        d = {}
+        for w in 'ab':
+            d[w] = sum(str(x).count('1') for x in (pr[w].get(s['id']) or []))
+        if d['a'] < tot or d['b'] < tot:
+            rows.append('• %s: Кристина %d/%d, Гриша %d/%d' % (s.get('title', ''), d['a'], tot, d['b'], tot))
+    if rows:
+        out.append('📺 Сериалы:'); out += rows[:8]
+    return out
+
+
+def watch_tick(now):
+    sent = set(json.loads(A.meta_get('fw_sent', '[]'))); ch = False
+    for f in kv_get('films', []):
+        if f.get('seen') or not f.get('watch'):
+            continue
+        try:
+            dt = datetime.strptime(f['watch'] + ' ' + (f.get('wtime') or '19:00'), '%Y-%m-%d %H:%M').replace(tzinfo=A.TZ)
+        except ValueError:
+            continue
+        sig = '%s|%s|%s' % (f['id'], f['watch'], f.get('wtime', ''))
+        if now >= dt and now - dt < timedelta(hours=6) and sig not in sent:
+            sent.add(sig); ch = True
+            A.notify('🎬 Пора смотреть: %s' % f.get('title', ''))
+    if ch:
+        A.meta_set('fw_sent', json.dumps(sorted(sent)[-200:]))
+    wk = '%d-%02d' % now.isocalendar()[:2]
+    if now.weekday() == 6 and now.hour >= 18 and A.meta_get('film_week', '') != wk:
+        A.meta_set('film_week', wk)
+        lines = series_week_lines()
+        if lines:
+            A.notify('Что посмотреть на неделе:\n' + '\n'.join(lines))
+
+
 def tick_extra(now):
     """Напоминания по заказам из Маркетплейса и ежемесячное обновление премьер."""
     prem_tick(now)
+    try:
+        watch_tick(now)
+    except Exception as e:
+        print('watch error', repr(e), flush=True)
     try:
         import monitor; monitor.A = A; monitor.tick(now)
     except Exception as e:
