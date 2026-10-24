@@ -39,7 +39,7 @@ function recipesPage() {
     return th(esc(cur.name), [cur.time, cur.src === 'themealdb' ? 'из TheMealDB' : ''].filter(Boolean).join(' · ')) +
       '<section class="glass box in" style="--i:1">' + (cur.photo ? '<img class="rph" src="' + esc(cur.photo) + '" alt="">' : '') +
       '<h2>Продукты</h2>' + (ing.length ? '<ul class="ingl">' + ing.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : empty('Продуктов нет.')) +
-      '<div class="acts" style="margin:12px 0">' + btn('Продукты в список покупок', 'recipeShop', { c: 'main', i: 'cart', d: 'data-id="' + cur.id + '"' }) + '</div>' +
+      '<div class="acts" style="margin:12px 0">' + btn('Продукты в список покупок', 'recipeShop', { c: 'main', i: 'cart', d: 'data-id="' + cur.id + '"' }) + btn('Понравилось: в меню', 'recipeMenu', { i: 'fork', d: 'data-id="' + cur.id + '"' }) + '</div>' +
       '<h2>Приготовление</h2>' + (st.length ? '<ol class="stl">' + st.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ol>' : empty('Шагов нет.')) +
       '<div class="acts" style="margin-top:12px">' + btn('Назад к рецептам', 'recipeOpen', { d: 'data-id=""' }) + btn('Изменить', 'ed', { i: 'pen', d: 'data-k="recipes" data-id="' + cur.id + '"' }) + '</div></section>';
   }
@@ -64,14 +64,15 @@ const PCAT = [['', 'Любое'], ['restaurant', 'Ресторан'], ['cafe', '
 const FGEN = ['', 'Боевик', 'Приключения', 'Мультфильм', 'Комедия', 'Криминал', 'Документальный', 'Драма', 'Семейный', 'Фэнтези', 'Фантастика', 'Ужасы', 'Детектив', 'Мелодрама', 'Триллер', 'Военный', 'Вестерн'];
 const BGEN = ['', 'Роман', 'Фэнтези', 'Фантастика', 'Детектив', 'Классика', 'История', 'Психология', 'Любовный роман'];
 const RCAT = [['', 'Любая'], ['Chicken', 'Курица'], ['Beef', 'Говядина'], ['Pork', 'Свинина'], ['Seafood', 'Морепродукты'], ['Pasta', 'Паста'], ['Vegetarian', 'Вегетарианское'], ['Dessert', 'Десерты'], ['Breakfast', 'Завтраки']];
-const RF = { genre: '', min: '7', src: 'tmdb', cat: '', pcat: '' };
+const RF = { genre: '', min: '7', src: 'tmdb', cat: '', pcat: '', meal: '' };
+const MEALS = [['', 'Любой'], ['breakfast', 'Завтрак'], ['lunch', 'Обед'], ['dinner', 'Ужин'], ['dessert', 'Десерт'], ['snack', 'Закуска'], ['vegan', 'Без мяса']];
 const RND = {};
 const yaLinkR = null;
 const selOpt = (arr, cur) => arr.map((o) => { const v = Array.isArray(o) ? o[0] : o, l = Array.isArray(o) ? o[1] : (o || 'Любой'); return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('');
 const fsel = (label, f, arr) => '<label class="rfl"><span>' + label + '</span><select data-chg="rndF" data-f="' + f + '">' + selOpt(arr, RF[f]) + '</select></label>';
 function randomPage() {
   const tab = UI.rtab || 'film', r = RND[tab] || {};
-  const filters = tab === 'film' || tab === 'tv' ? fsel('Жанр', 'genre', FGEN) + fsel('Оценка от', 'min', [['0', 'Любая'], ['6', '6'], ['7', '7'], ['8', '8']]) + fsel('Источник', 'src', [['tmdb', 'TMDB'], ['kp', 'Кинопоиск']]) : tab === 'book' ? fsel('Жанр', 'genre', BGEN) : tab === 'place' ? fsel('Что ищем', 'pcat', PCAT) : fsel('Категория', 'cat', RCAT);
+  const filters = tab === 'film' || tab === 'tv' ? fsel('Жанр', 'genre', FGEN) + fsel('Оценка от', 'min', [['0', 'Любая'], ['6', '6'], ['7', '7'], ['8', '8']]) + fsel('Источник', 'src', [['tmdb', 'TMDB'], ['kp', 'Кинопоиск']]) : tab === 'book' ? fsel('Жанр', 'genre', BGEN) : tab === 'place' ? fsel('Что ищем', 'pcat', PCAT) : fsel('Тип блюда', 'meal', MEALS) + fsel('Основа', 'cat', RCAT);
   let res = '';
   if (r.loading) res = '<div class="rres">Ищу…</div>';
   else if (r.err) res = '<div class="rres err">' + esc(r.err) + '</div>';
@@ -91,7 +92,7 @@ async function rndRoll() {
   if (tab === 'film' || tab === 'tv') path = '/api/film/random?type=' + (tab === 'tv' ? 'tv' : 'movie') + '&genre=' + encodeURIComponent(RF.genre) + '&min=' + RF.min + '&src=' + RF.src;
   else if (tab === 'book') path = '/api/book/random?genre=' + encodeURIComponent(RF.genre);
   else if (tab === 'place') path = '/api/place/random?cat=' + encodeURIComponent(RF.pcat);
-  else path = '/api/recipe/random?cat=' + encodeURIComponent(RF.cat);
+  else path = '/api/recipe/random?cat=' + encodeURIComponent(RF.cat) + '&meal=' + RF.meal;
   const j = await srv(path);
   RND[tab] = j.item ? { item: j.item } : { err: j.error || 'Не получилось' };
   if (route().page === 'random') render({ keep: true });
@@ -105,7 +106,7 @@ function rndAdd() {
     S.places.push({ id: uid(), name: it.name, note: [it.cat, it.addr].filter(Boolean).join(' · '), visited: false, date: '', lat: it.lat, lng: it.lng, pics: it.poster ? [it.poster] : [] });
     commit(); toast('Добавлено в «Места»');
   } else if (tab === 'recipe') {
-    S.recipes = S.recipes || []; S.recipes.push({ id: uid(), name: it.name, time: '', ing: it.ing, steps: it.steps, photo: it.poster || '', src: 'themealdb' });
+    S.recipes = S.recipes || []; S.recipes.push({ id: uid(), name: it.name, time: '', ing: it.ing, steps: it.steps, photo: it.poster || '', src: 'themealdb', meal: RF.meal });
     commit(); toast('Рецепт сохранён');
   } else addFilm(it);
 }

@@ -299,8 +299,14 @@ def translate(text):
         return text
 
 
-def recipe_random(cat):
+MEAL_CATS = {'breakfast': ['Breakfast'], 'lunch': ['Starter', 'Side', 'Vegetarian', 'Chicken'], 'dinner': ['Beef', 'Chicken', 'Pork', 'Pasta', 'Seafood', 'Lamb'],
+             'dessert': ['Dessert'], 'snack': ['Starter', 'Side'], 'vegan': ['Vegan', 'Vegetarian']}
+
+
+def recipe_random(cat, meal=''):
     base = 'https://www.themealdb.com/api/json/v1/1/'
+    if not cat and meal in MEAL_CATS:
+        cat = random.choice(MEAL_CATS[meal])
     if cat:
         lst = jget(base + 'filter.php?c=' + urllib.parse.quote(cat)).get('meals') or []
         if not lst:
@@ -711,7 +717,7 @@ def http_extra(h, method, path, who):
         if path == '/api/place/random':
             return h.send(200, {'item': place_random(q.get('cat', ''))}) or True
         if path == '/api/recipe/random':
-            return h.send(200, {'item': recipe_random(q.get('cat', ''))}) or True
+            return h.send(200, {'item': recipe_random(q.get('cat', ''), q.get('meal', ''))}) or True
     except Fail as e:
         return h.send(200, {'error': str(e)}) or True
     except Exception as e:

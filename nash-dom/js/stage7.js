@@ -123,3 +123,14 @@ Object.assign(ACT7, {
   hsEdIt(el) { const s = findIn(HST(), el.dataset.s); hsItForm(s, findIn(s.items, el.dataset.id)); },
   hsTg(el) { const s = findIn(HST(), el.dataset.s), i = findIn(s.items, el.dataset.id); i.done = !i.done; commit(); },
 });
+
+/* ====== приготовили и понравилось: рецепт в меню ====== */
+ACT7.recipeMenu = (el) => {
+  const r = findIn(S.recipes, el.dataset.id); if (!r) return;
+  const guess = { breakfast: 'Завтрак', lunch: 'Обед', dinner: 'Ужин', dessert: 'Выпечка', snack: 'Салаты', vegan: 'Обед' }[r.meal] || S.secs[0];
+  openForm({ title: 'Добавить в меню', save: 'Добавить', fields: [T('sec', 'В какой раздел', { type: 'select', options: S.secs.map((x) => [x, x]) }), T('note', 'Заметка', { ph: 'Например, получилось очень вкусно' })], values: { sec: S.secs.includes(guess) ? guess : S.secs[0], note: '' },
+    onSave(v) {
+      if (S.dishes.some((d) => d.rid === r.id && d.sec === v.sec)) { toast('Это блюдо уже в этом разделе меню'); return; }
+      S.dishes.push({ id: uid(), sec: v.sec, name: r.name, note: v.note || 'Из рецептов', plan: false, rid: r.id }); commit(); toast('Добавлено в меню: ' + v.sec);
+    } });
+};
