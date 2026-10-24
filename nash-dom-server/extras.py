@@ -175,6 +175,12 @@ def film_search(q):
     return finish_posters(items)
 
 
+def tv_seasons(tid):
+    r = tm('/tv/' + str(int(tid)))
+    out = [int(x.get('episode_count') or 0) for x in sorted(r.get('seasons', []), key=lambda x: x.get('season_number', 0)) if x.get('season_number', 0) > 0]
+    return {'seasons': out, 'name': r.get('name', ''), 'status': r.get('status', '')}
+
+
 def film_random(kind, genre, minr, src):
     if src == 'kp':
         return film_random_kp(kind, genre, minr)
@@ -692,6 +698,8 @@ def http_extra(h, method, path, who):
             return h.send(200, status()) or True
         if path == '/api/film/search':
             return h.send(200, {'items': film_search(q.get('q', '').strip()[:80])}) or True
+        if path == '/api/tv/seasons':
+            return h.send(200, tv_seasons(q.get('id', '0'))) or True
         if path == '/api/film/random':
             return h.send(200, {'item': film_random(q.get('type', 'movie'), q.get('genre', ''), float(q.get('min') or 0), q.get('src', 'tmdb'))}) or True
         if path == '/api/film/kp':

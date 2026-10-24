@@ -150,6 +150,9 @@ function migrate() {
   if (!S.notes) S.notes = {};
   if (!S.market) S.market = [];
   if (!S.recipes) S.recipes = [];
+  if (!S.series) S.series = [];
+  if (!S.serp_a) S.serp_a = {};
+  if (!S.serp_b) S.serp_b = {};
   if (!S.us) S.us = { since: '' };
   if (!S.p_a_gifts) S.p_a_gifts = [];
   if (!S.p_b_gifts) S.p_b_gifts = [];

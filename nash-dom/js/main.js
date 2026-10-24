@@ -21,7 +21,7 @@ function commit() { persist(); render({ keep: true }); }
 const findIn = (arr, id) => arr.find((x) => x.id === id);
 
 /* ====== отрисовка ====== */
-const LABEL = { market: 'Маркетплейс', recipes: 'Рецепты', random: 'Случайное', gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
+const LABEL = { market: 'Маркетплейс', recipes: 'Рецепты', random: 'Случайное', gifts: 'Тайные подарки', note: 'Заметка дня', us: 'Мы вместе', buys: 'Покупки', '': '', study: 'Учёба', wish: 'Хотелки', lists: 'Списки', server: 'Сервер', films: 'Кино', series: 'Сериалы', prem: 'Премьеры', places: 'Места', trips: 'Поездки', dates: 'Даты', menu: 'Меню', kitchen: 'Кухня', quest: 'Вопрос дня', chores: 'Дела по дому' };
 function route() { const p = location.hash.replace(/^#\/?/, '').split('/'); return { zone: p[0] || 'home', page: p[1] || '' }; }
 let lastKey = '', focusId = '';
 function render(o) {
@@ -32,7 +32,7 @@ function render(o) {
   const z = r.zone, pg = r.page;
   if (z === 'her') html = layout('her', pg, pg ? LABEL[pg] : 'Её выбор', pg === 'study' ? studyPage() : pg === 'wish' ? wishPage('her') : pg === 'lists' ? listsPage('her') : pg === 'gifts' ? giftsPage('her') : herPage());
   else if (z === 'his') html = layout('his', pg, pg ? LABEL[pg] : 'Его выбор', pg === 'wish' ? wishPage('his') : pg === 'lists' ? listsPage('his') : pg === 'gifts' ? giftsPage('his') : pg === 'server' ? serverPage() : hisPage());
-  else if (z === 'tog') { const P = { films: filmsPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage, note: notesPage, us: usPage, market: marketPage, recipes: recipesPage, random: randomPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
+  else if (z === 'tog') { const P = { films: filmsPage, series: serPage, prem: premPage, places: placesPage, menu: menuPage, kitchen: kitchenPage, dates: datesPage, trips: tripsPage, quest: questPage, chores: choresPage, buys: buysPage, note: notesPage, us: usPage, market: marketPage, recipes: recipesPage, random: randomPage }; html = layout('tog', pg, pg ? LABEL[pg] : 'Общее', (P[pg] || togPage)()); }
   else html = homePage();
   const same = key === lastKey;
   app.className = (same && o.keep ? 'noanim ' : '') + 'z-' + (z === 'home' ? 'home' : z);
@@ -217,7 +217,7 @@ document.addEventListener('touchcancel', endDrag, { passive: true });
 document.addEventListener('click', (e) => { if (Date.now() - noClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('drawer'); });
 
-Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3, ACT4, ACT6);
+Object.assign(SCH, SCH2, SCH3); Object.assign(QA, QA2, QA3); Object.assign(ACT, ACT2, ACT3, ACT4, ACT6, ACT7);
 load(); render(); NDS.init();
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 

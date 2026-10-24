@@ -107,6 +107,7 @@ function searchIndex() {
   S.hwishes.forEach((x) => add('Хотелки Гриши', '#/his/wish', x.name, x.shop + ' ' + x.price));
   S.lists.forEach((x) => add((x.who === 'a' ? 'Кристина' : 'Гриша') + ' · ' + ({ w: 'смотреть', p: 'играть', r: 'читать' }[x.kind] || 'списки'), x.who === 'a' ? '#/her/lists' : '#/his/lists', x.title, x.meta, x.kind));
   S.films.forEach((x) => add('Кино', '#/tog/films', x.title, x.note));
+  (S.series || []).forEach((x) => add('Сериалы', '#/tog/series', x.title, x.year));
   S.prem.forEach((x) => add('Премьеры', '#/tog/prem', x.title, x.place));
   S.places.forEach((x) => add('Места', '#/tog/places', x.name, x.note));
   S.trips.forEach((x) => add('Поездки', '#/tog/trips', x.name));
