@@ -44,7 +44,7 @@
     ['Поездка в Выборг на выходные', '15 ноября', 'вместе'],
     ['Набор для настолок', 'пока в мечтах', 'Гриша']
   ];
-  const NEWROW = ['Забронировать столик на субботу', 'только что', 'Кристина'];
+  const NEWROW = ['Столик на субботу', 'только что', 'Кристина'];
   const USERMSG = 'Ozon, код 4821, до 28 октября';
   const RES = [['Процессор', 28, 'ok'], ['Память', 45, 'ok'], ['Диск', 35, 'ok']];
   const PEERS = [['iPhone', 1], ['MacBook', 1], ['iPad', 0]];
@@ -90,7 +90,7 @@
         '<div class="tx"><div class="eyebrow" ' + D('up', 0) + '>Сервер</div><h3 ' + D('up', 0.06) + '>Сервер под присмотром</h3>' +
         '<p class="desc" ' + D('up', 0.12) + '>Нагрузка, диск, сертификат и клиенты VPN на одной странице. Если служба остановится, бот напишет первым.</p></div>' +
         '<div class="mon">' +
-          '<div class="pill" ' + D('up', 0.2) + '><i id="pdot"></i>Всё работает<span>без перезагрузки 14 дн</span></div>' + res +
+          '<div class="pill" ' + D('up', 0.2) + '><i id="pdot"></i>Всё работает<span>работает 14 дн</span></div>' + res +
           '<div class="chw" id="chw" ' + D('up', 0.5) + '><svg viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true"><path d="' + chPath + '" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg><div class="scr" id="scr"><u id="sdot"></u></div><div class="tip" id="tip"></div></div>' +
           '<div class="peers">' + peers + '</div>' +
         '</div>' +

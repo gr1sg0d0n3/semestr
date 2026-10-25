@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Наш дом: планы на двоих без чужих сервисов</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Закрытый сайт для списков, кино и мест, бот в Telegram с напоминаниями о заказах и страница состояния сервера. Всё на вашем сервере, без сборки и трекеров.">
+<meta property="og:title" content="Наш дом: планы на двоих без чужих сервисов">
+<meta property="og:description" content="Сайт на двоих, бот в Telegram и мониторинг сервера. Установка одной командой.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="media/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f4e7ec">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2382284a' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.7 5 6 5c2 0 3.4 1 4.2 2.3h3.6C14.6 6 16 5 18 5c3.3 0 5.1 3.4 3.6 6.8C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="bento.css">
+<style>
+  :root { --reveal: 800ms var(--ease); }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+  *, *::before, *::after { box-sizing: border-box; }
+  a { color: inherit; }
+  h1, h2, h3, p { margin: 0; }
+  .skip { position: absolute; left: 16px; top: -64px; z-index: 100; padding: 8px 12px; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 600; text-decoration: none; transition: top var(--reveal); }
+  .skip:focus { top: 16px; }
+  :focus-visible { outline: 2px solid var(--burg); outline-offset: 2px; }
+  .wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 64px 0; }
+  @media (min-width: 900px) { section { padding: 96px 0; } }
+
+  /* навигация: плавающая стеклянная капсула */
+  .nav { position: fixed; z-index: 50; top: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 24px; padding: 8px 8px 8px 24px; width: max-content; max-width: calc(100% - 32px); border-radius: 9999px; background: rgba(255, 255, 255, .72); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, .9); box-shadow: 0 24px 48px -32px rgba(110, 40, 70, .35); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; }
+  .brand svg { width: 24px; height: 24px; color: var(--burg); }
+  .nav ul { display: none; list-style: none; margin: 0; padding: 0; gap: 24px; }
+  .nav ul a { font-size: 14px; line-height: 20px; font-weight: 600; text-decoration: none; color: var(--ink2); transition: color var(--reveal); }
+  .nav ul a:hover { color: var(--ink); }
+  @media (min-width: 768px) { .nav ul { display: flex; } }
+
+  /* кнопки */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border-radius: 12px; border: 0; background: var(--burg); color: #fff; font: inherit; font-size: 16px; line-height: 24px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 700ms var(--ease); }
+  .btn:hover { background: var(--burgd); transform: translateY(-2px); }
+  .btn:active { transform: scale(.98); }
+  .btn.sm { font-size: 14px; line-height: 20px; border-radius: 9999px; padding: 8px 16px; }
+  .btn svg { width: 20px; height: 20px; }
+
+  /* hero */
+  .hero { padding-top: 160px; }
+  .hero .grid { display: grid; gap: 48px; align-items: center; }
+  .hero h1 { max-width: 680px; font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; background: linear-gradient(90deg, #000000, #666666); -webkit-background-clip: text; background-clip: text; color: transparent; text-wrap: balance; }
+  .hero .sub { max-width: 680px; margin-top: 24px; font-size: 18px; line-height: 28px; color: var(--ink2); text-wrap: pretty; }
+  .hero .cta { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .hero .proof { margin-top: 24px; max-width: 680px; font-size: 14px; line-height: 20px; color: var(--ink2); }
+  @media (min-width: 900px) {
+    .hero h1 { font-size: 60px; line-height: 1; }
+    .hero .grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  }
+  .home { position: relative; height: 360px; border-radius: 24px; overflow: hidden; background: #dde0e4; box-shadow: 0 24px 48px -32px rgba(110, 40, 70, .35); }
+  .home .pk { position: absolute; left: 0; top: 0; bottom: 0; width: 46%; background: var(--rose); border-radius: 0 160px 160px 0 / 0 50% 50% 0; box-shadow: 24px 0 48px -24px rgba(110, 40, 70, .35); }
+  .home .lb { position: absolute; text-align: center; font-weight: 700; letter-spacing: -.01em; }
+  .home .lb small { display: block; margin-top: 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); letter-spacing: 0; }
+  .home .l1 { left: 4%; top: 42%; font-size: 24px; line-height: 32px; color: #6b1f3d; }
+  .home .l2 { right: 6%; top: 42%; font-size: 24px; line-height: 32px; color: #33363d; }
+  .home .l3 { left: 50%; top: 14%; transform: translateX(-50%); font-size: 30px; line-height: 36px; color: #8a2b44; }
+  .home .bar { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 14px; line-height: 20px; font-weight: 700; background: rgba(255, 255, 255, .6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .home .bar svg { width: 20px; height: 20px; color: var(--burg); }
+
+  /* слоган */
+  .tagline { padding: 96px 0; }
+  .tagline p { max-width: 960px; font-size: 36px; line-height: 40px; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+  @media (min-width: 900px) { .tagline p { font-size: 48px; line-height: 1; } }
+  .tagline .w { color: rgba(43, 22, 32, .3); transition: color 700ms var(--ease); }
+  .tagline .w.on { color: var(--ink); }
+
+  /* заголовки секций */
+  .head { max-width: 680px; margin-bottom: 48px; }
+  .head h2 { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+  .head p { margin-top: 12px; font-size: 18px; line-height: 28px; color: var(--ink2); text-wrap: pretty; }
+  @media (min-width: 900px) { .head h2 { font-size: 36px; line-height: 40px; } }
+
+  /* выгоды */
+  .ben { display: grid; gap: 24px; }
+  @media (min-width: 768px) { .ben { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1100px) { .ben { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .card { padding: 24px; border-radius: 24px; background: var(--card); box-shadow: 0 24px 48px -32px rgba(110, 40, 70, .35); border: 1px solid rgba(255, 255, 255, .9); }
+  .card .ic { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: var(--rose2); color: var(--burg); margin-bottom: 16px; }
+  .card .ic svg { width: 24px; height: 24px; }
+  .card h3 { font-size: 20px; line-height: 28px; font-weight: 700; }
+  .card p { margin-top: 8px; font-size: 16px; line-height: 24px; color: var(--ink2); text-wrap: pretty; }
+
+  /* шаги */
+  .steps { display: grid; gap: 24px; counter-reset: s; }
+  @media (min-width: 900px) { .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .step { position: relative; padding: 24px; border-radius: 24px; background: var(--card); border: 1px solid rgba(255, 255, 255, .9); box-shadow: 0 24px 48px -32px rgba(110, 40, 70, .35); }
+  .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 16px; border-radius: 9999px; background: var(--burg); color: #fff; font-size: 14px; line-height: 20px; font-weight: 700; }
+  .step h3 { font-size: 20px; line-height: 28px; font-weight: 700; }
+  .step p { margin-top: 8px; color: var(--ink2); text-wrap: pretty; }
+  .step code { font-family: ui-monospace, 'Geist Mono', monospace; font-size: 14px; line-height: 20px; padding: 2px 8px; border-radius: 8px; background: var(--page); color: var(--burgd); }
+
+  /* вопросы */
+  .faq { max-width: 800px; display: grid; gap: 12px; }
+  .faq details { border-radius: 16px; background: var(--card); border: 1px solid rgba(255, 255, 255, .9); padding: 0 24px; }
+  .faq summary { cursor: pointer; list-style: none; padding: 16px 0; font-size: 18px; line-height: 28px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: ''; flex: none; width: 12px; height: 12px; border-right: 2px solid var(--burg); border-bottom: 2px solid var(--burg); transform: rotate(45deg); transition: transform 700ms var(--ease); }
+  .faq details[open] summary::after { transform: rotate(-135deg); }
+  .faq details p { padding: 0 0 24px; color: var(--ink2); text-wrap: pretty; }
+
+  /* риск и финальный призыв */
+  .risk { max-width: 800px; padding: 24px; border-radius: 24px; background: var(--rose2); }
+  .risk p { font-size: 18px; line-height: 28px; text-wrap: pretty; }
+  .final { text-align: center; }
+  .final h2 { max-width: 680px; margin: 0 auto; font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+  @media (min-width: 900px) { .final h2 { font-size: 48px; line-height: 1; } }
+  .final .btn { margin-top: 32px; }
+  footer { padding: 48px 0; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 14px; line-height: 20px; color: var(--ink2); }
+  footer a { font-weight: 600; text-decoration: none; color: var(--ink); }
+  footer a:hover { color: var(--burg); }
+
+  /* появление при прокрутке */
+  .rv { opacity: 0; transform: translateY(64px); filter: blur(12px); transition: transform var(--reveal), filter var(--reveal), opacity var(--reveal); }
+  .rv.in { opacity: 1; transform: none; filter: none; }
+  @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; filter: none; transition: none; } .tagline .w { color: var(--ink); transition: none; } html { scroll-behavior: auto; } }
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Нужен ли сервер?","acceptedAnswer":{"@type":"Answer","text":"Сайт можно открыть и без сервера: он статический, данные хранятся в браузере. Сервер нужен для синхронизации между двумя устройствами, бота в Telegram и страницы состояния."}},
+{"@type":"Question","name":"Что нужно для установки?","acceptedAnswer":{"@type":"Answer","text":"Сервер на Ubuntu, домен, который указывает на него, и токен бота от BotFather. Остальное делает установочный скрипт."}},
+{"@type":"Question","name":"Где хранятся данные?","acceptedAnswer":{"@type":"Answer","text":"В браузере и в базе SQLite на вашем сервере. Фотографии лежат на диске сервера. Есть экспорт и импорт в JSON."}}
+]}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<nav class="nav" aria-label="Основное меню">
+  <a class="brand" href="#top"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.7 5 6 5c2 0 3.4 1 4.2 2.3h3.6C14.6 6 16 5 18 5c3.3 0 5.1 3.4 3.6 6.8C19.5 16.4 12 21 12 21z"/></svg>Наш дом</a>
+  <ul>
+    <li><a href="#benefits">Возможности</a></li>
+    <li><a href="#look">Как выглядит</a></li>
+    <li><a href="#how">Установка</a></li>
+    <li><a href="#faq">Вопросы</a></li>
+  </ul>
+  <a class="btn sm" href="https://github.com/gr1sg0d0n3/semestr">Открыть код</a>
+</nav>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap grid">
+      <div>
+        <h1 class="rv">Планы на двоих<br>без чужих сервисов<br>и подписок</h1>
+        <p class="sub rv">Наш дом собирает в одном месте списки хотелок, кино, места и меню. Бот в Telegram напоминает про заказы, а страница сервера показывает неполадки.</p>
+        <div class="cta rv">
+          <a class="btn" href="https://github.com/gr1sg0d0n3/semestr">Открыть код на GitHub</a>
+        </div>
+        <p class="proof rv">Сайт без сборки, сервер на стандартной библиотеке Python, установка одним скриптом.</p>
+      </div>
+      <div class="home rv" role="img" aria-label="Главный экран сайта: две половины, её и его выбор, и общий раздел сверху">
+        <div class="pk"></div>
+        <div class="bar"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.7 5 6 5c2 0 3.4 1 4.2 2.3h3.6C14.6 6 16 5 18 5c3.3 0 5.1 3.4 3.6 6.8C19.5 16.4 12 21 12 21z"/></svg>Наш дом</div>
+        <div class="lb l3">Общее<small>вместе: 6 фильмов, 8 мест</small></div>
+        <div class="lb l1">Её выбор<small>списки и учёба</small></div>
+        <div class="lb l2">Его выбор<small>игры и фильмы</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tagline" aria-label="Главная мысль">
+    <div class="wrap"><p id="tag">Всё, что вы планируете вдвоём, лежит в одном месте. Бот напомнит о важном, а сервер сообщит первым, если случится сбой.</p></div>
+  </section>
+
+  <section id="benefits">
+    <div class="wrap">
+      <div class="head rv"><h2>Меньше хлопот с планами и сервером</h2><p>Пять причин, почему проект подходит паре, которой надоели разрозненные заметки и чужие приложения.</p></div>
+      <div class="ben">
+        <article class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01"/></svg></div><h3>Один список на двоих</h3><p>Правки одного видны второму меньше чем через минуту. Хотелки, кино, места и меню лежат в одном приложении.</p></article>
+        <article class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3>Работает без связи</h3><p>Если сервера нет или пропал интернет, сайт продолжает работать с данными в браузере и догоняет синхронизацию позже.</p></article>
+        <article class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6M10 19a2 2 0 004 0"/></svg></div><h3>Заказ не пропадёт</h3><p>Отправьте боту код с пункта выдачи и срок хранения. Бот спросит, кому напомнить, и напишет в нужный день.</p></article>
+        <article class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v5H4zM4 14h16v5H4zM8 8.5h.01M8 16.5h.01"/></svg></div><h3>Сервер скажет первым</h3><p>Бот пишет, если остановилась служба, заполнился диск или памяти осталось мало, а сертификат HTTPS скоро истечёт.</p></article>
+        <article class="card rv"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v9H5z"/></svg></div><h3>Данные остаются у вас</h3><p>Браузер и ваш сервер, без внешних аккаунтов. Сайт закрыт от поисковиков, а все данные можно выгрузить в JSON.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="look">
+    <div class="wrap">
+      <div class="head rv"><h2>Как это выглядит</h2><p>Три части проекта в одном кадре. Анимация показывает, что делает каждая из них.</p></div>
+      <div id="bento"></div>
+      <noscript><p>Для анимации нужен включённый JavaScript. Ролик лежит рядом: <a href="media/nashdom-x.mp4">nashdom-x.mp4</a>.</p></noscript>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="head rv"><h2>Установка занимает один вечер</h2><p>Нужен сервер на Ubuntu, домен и токен бота от BotFather.</p></div>
+      <div class="steps">
+        <article class="step rv"><h3>Запустите скрипт</h3><p>Файл <code>deploy/install-nashdom.sh</code> ставит nginx, HTTPS, сайт, сервер и сборщик состояния. Его можно запускать повторно.</p></article>
+        <article class="step rv"><h3>Напишите боту</h3><p>Скрипт выведет команду вида <code>/start код</code>. Отправьте её своему боту, и он узнает вас.</p></article>
+        <article class="step rv"><h3>Позовите второго</h3><p>Команда <code>/invite</code> создаст приглашение, а <code>/code</code> выдаст код для входа на сайт с любого устройства.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="head rv"><h2>Частые вопросы</h2></div>
+      <div class="faq">
+        <details class="rv"><summary>Нужен ли сервер?</summary><p>Нет, если хватает локального режима. Сайт статический, его можно открыть как файл или выложить на любой хостинг, а данные останутся в браузере. Сервер нужен для синхронизации между двумя устройствами, бота и страницы состояния.</p></details>
+        <details class="rv"><summary>Что нужно для установки?</summary><p>Сервер на Ubuntu, домен с записью на его адрес и токен бота от BotFather. Скрипт проверит, свободны ли порты 80 и 443, и совпадает ли адрес домена с адресом сервера.</p></details>
+        <details class="rv"><summary>Где хранятся данные?</summary><p>В браузере и в базе SQLite на вашем сервере. Фотографии лежат на диске сервера. Есть экспорт и импорт в JSON.</p></details>
+        <details class="rv"><summary>Можно ли пользоваться с iPhone?</summary><p>Да. Сайт устроен как приложение: его можно добавить на экран «Домой» и открывать без адресной строки.</p></details>
+        <details class="rv"><summary>Видят ли сайт поисковики?</summary><p>Нет. Страницы закрыты от индексации в метатегах, в файле robots.txt и в заголовках nginx.</p></details>
+        <details class="rv"><summary>Что умеет мониторинг?</summary><p>Показывает нагрузку, память, диск, службы, ответ сайта и срок сертификата, хранит историю трафика и список клиентов VPN. При проблемах бот пишет владельцу, а когда всё починится, присылает второе сообщение.</p></details>
+        <details class="rv"><summary>Как обновлять?</summary><p>Командой <code>nashdom-update</code> на сервере: она забирает свежий код, обновляет сайт и перезапускает службы.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="risk rv"><p>Установка ничего не ломает. Если порты 80 и 443 заняты чужой программой, скрипт остановится и ничего не изменит. Если адрес домена не совпадает с адресом сервера, он тоже остановится и подскажет, что исправить.</p></div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2 class="rv">Соберите свой дом на двоих</h2>
+      <a class="btn rv" href="https://github.com/gr1sg0d0n3/semestr">Открыть код на GitHub</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Эта страница не использует cookie и трекеры.</span>
+    <a href="https://github.com/gr1sg0d0n3/semestr">Исходный код</a>
+  </div>
+</footer>
+
+<script src="bento.js"></script>
+<script>
+  Bento.mount(document.getElementById('bento'), { mode: 'site' });
+
+  // появление блоков при прокрутке: IntersectionObserver, без обработчиков scroll
+  const rv = document.querySelectorAll('.rv');
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
+  rv.forEach((el) => io.observe(el));
+
+  // слоган: слова загораются по одному, когда пересекают линию на 65% высоты экрана
+  const tag = document.getElementById('tag');
+  tag.innerHTML = tag.textContent.split(' ').map((w) => '<span class="w">' + w + '</span>').join(' ');
+  const ws = tag.querySelectorAll('.w');
+  const wio = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('on', e.boundingClientRect.top < innerHeight * 0.65)), { rootMargin: '0px 0px -35% 0px', threshold: [0, 1] });
+  ws.forEach((w) => wio.observe(w));
+</script>
+</body>
+</html>

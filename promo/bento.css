@@ -61,7 +61,7 @@
 
 /* ===== карточка C: сервер ===== */
 .bento .mon { background: var(--page); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 286px; }
-.bento .pill { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 700; }
+.bento .pill { white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 700; }
 .bento .pill i { width: 12px; height: 12px; border-radius: 50%; background: var(--ok); }
 .bento .pill span { margin-left: auto; font-weight: 500; color: var(--ink2); font-size: 12px; line-height: 16px; }
 .bento .rs { display: grid; grid-template-columns: 72px 1fr 40px; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
@@ -79,10 +79,16 @@
 .bento .peer.off i { background: #b9bcc3; }
 .bento .peer i::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--ok); opacity: var(--pr, 0); transform: scale(var(--ps, 1)); }
 
+/* ===== раскладка на странице (не сцена) ===== */
+@media (min-width: 900px) {
+  .bento:not(.stage) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+}
+
 /* ===== мобильная раскладка ===== */
 @media (max-width: 899px) {
   .bento:not(.stage) { grid-template-columns: 1fr; }
   .bento:not(.stage) .bc.a { grid-row: auto; }
   .bento:not(.stage) .bc.b, .bento:not(.stage) .bc.c { grid-template-columns: 1fr; row-gap: 24px; }
 }
+@media (max-width: 480px) { .bento:not(.stage) .row .who { display: none; } }
 @media (prefers-reduced-motion: reduce) { .bento * { transition: none !important; } }
