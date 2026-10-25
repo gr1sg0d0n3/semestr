@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Наш дом: показ</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="bento.css">
+<style>
+  html, body { margin: 0; background: #f4e7ec; overflow: hidden; }
+  #wrap { position: fixed; left: 0; top: 0; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage" class="stage"></div></div>
+<script src="bento.js"></script>
+<script>
+  /* ?still: финальный кадр, ?loop: цикл 12 с, ?capture: время двигает рекордер, без параметров: один вход и бесконечные истории */
+  const qs = location.search;
+  const mode = /capture/.test(qs) ? 'capture' : /still/.test(qs) ? 'still' : /loop/.test(qs) ? 'cycle' : 'site';
+  window.__bento = Bento.mount(document.getElementById('stage'), { mode });
+  document.getElementById('stage').classList.add('stage');
+  function fit() {
+    const w = document.getElementById('wrap'), k = Math.min(innerWidth / 1440, innerHeight / 810);
+    w.style.transform = 'scale(' + k + ')';
+  }
+  addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
