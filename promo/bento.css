@@ -1,6 +1,12 @@
+@font-face { font-family: 'Literata'; src: url(fonts/literata-r.woff) format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Literata'; src: url(fonts/literata-m.woff) format('woff'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Literata'; src: url(fonts/literata-sb.woff) format('woff'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Literata'; src: url(fonts/literata-i.woff) format('woff'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Literata'; src: url(fonts/literata-mi.woff) format('woff'); font-weight: 500; font-style: italic; font-display: swap; }
 /* Карточки «Наш дом»: сайт, бот, сервер. Значения только из правил landing-page-design (шкала текста, отступы, радиусы). */
 :root {
-  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
+  --disp: 'Literata', Georgia, 'Times New Roman', serif;
   --page: #f4e7ec;
   --card: #ffffff;
   --ink: #2b1620;
@@ -26,7 +32,7 @@
 .bento .bc.b, .bento .bc.c { display: grid; grid-template-columns: 280px 1fr; column-gap: 32px; align-items: stretch; }
 .bento .tx { display: flex; flex-direction: column; justify-content: flex-start; }
 .bento .eyebrow { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--burg); margin-bottom: 8px; }
-.bento h3 { margin: 0 0 8px; font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+.bento h3 { margin: 0 0 8px; font-family: var(--disp); font-style: italic; font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.01em; text-wrap: balance; }
 .bento .bc.b h3, .bento .bc.c h3 { font-size: 24px; line-height: 32px; }
 .bento .desc { margin: 0; font-size: 16px; line-height: 24px; color: var(--ink2); text-wrap: pretty; }
 .bento .bc.b .desc, .bento .bc.c .desc { font-size: 14px; line-height: 20px; }
