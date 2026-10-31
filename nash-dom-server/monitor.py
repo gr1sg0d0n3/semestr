@@ -133,8 +133,14 @@ def known_add(p):
         k.append(peer_key(p)); A.meta_set('vpn_known', json.dumps(k))
 
 
+def fmt_dur(sec):
+    m = int(sec // 60)
+    return ('%d ч %d мин' % (m // 60, m % 60)) if m >= 60 else ('%d мин' % m)
+
+
 def vpn_events(d, now_dt):
-    """Подключился / отключился, чужой клиент, недельная сводка. Всё только Грише, под тем же переключателем, что и тревоги."""
+    """Сообщение о чужом клиенте и ежедневная статистика по клиентам. О каждом подключении и отключении больше не пишем.
+    Статистика копится молча: число подключений (с паузой не меньше GONE между ними), время онлайн и трафик за сутки."""
     now = int(time.time())
     if not d or now - d.get('ts', 0) > 180:
         return
@@ -146,10 +152,20 @@ def vpn_events(d, now_dt):
     try:
         st = json.loads(A.meta_get('vpn_state', 'null'))
         known = json.loads(A.meta_get('vpn_known', 'null'))
+        last = json.loads(A.meta_get('vpn_last', '{}'))
+        day = json.loads(A.meta_get('vpn_day', 'null'))
     except Exception:
-        st = known = None
+        st = known = day = None; last = {}
     first = st is None or known is None
     st = st or {}; known = known if known is not None else []
+    today = now_dt.strftime('%Y-%m-%d')
+    # новые сутки: прошедшие откладываем до утренней отправки
+    if day is None or day.get('date') != today:
+        if day and day.get('p'):
+            pend = json.loads(A.meta_get('vpn_pending', '[]'))
+            pend.append(day); A.meta_set('vpn_pending', json.dumps(pend[-3:]))
+        day = {'date': today, 'p': {}}
+    dt = min(max(now - last.get('_ts', now), 0), 120)
     out = []
     seen = set()
     for p in peers:
@@ -161,41 +177,53 @@ def vpn_events(d, now_dt):
         elif k not in known:
             known.append(k)
             out.append('🆕 Появился новый VPN-клиент «%s», созданный не через бота. Если это были не вы, откройте панель wg-easy и удалите его.' % pname(p, names))
+        r = day['p'].setdefault(k, {'n': 0, 'sec': 0, 'rx': 0, 'tx': 0})
+        r['name'] = pname(p, names)
+        lr = last.get(k)
+        if lr:   # счётчик мог обнулиться после перезапуска, тогда берём его целиком
+            r['rx'] += p['rx'] - lr[0] if p['rx'] >= lr[0] else p['rx']
+            r['tx'] += p['tx'] - lr[1] if p['tx'] >= lr[1] else p['tx']
+        last[k] = [p['rx'], p['tx']]
+        if live:
+            r['sec'] += dt
         if e is None:
             st[k] = {'on': live, 'seen': p['hs']}
+            if live and not first:
+                r['n'] += 1
             continue
         if live:
             e['seen'] = p['hs']
             if not e['on']:
                 e['on'] = True
-                if not first:
-                    out.append('🟢 %s подключился' % pname(p, names))
+                r['n'] += 1
         elif e['on'] and now - (p['hs'] or 0) >= GONE:
             e['on'] = False
-            out.append('⚪ %s отключился' % pname(p, names))
     for k in list(st):
         if k not in seen:
             del st[k]
+    last['_ts'] = now
     A.meta_set('vpn_state', json.dumps(st)); A.meta_set('vpn_known', json.dumps(known))
-    # недельная сводка: понедельник, 9 утра
-    wk = now_dt.strftime('%G-%V')
-    if now_dt.weekday() == 0 and now_dt.hour == 9 and A.meta_get('vpn_week_sent') != wk:
-        A.meta_set('vpn_week_sent', wk)
-        try:
-            base = json.loads(A.meta_get('vpn_week', '{}'))
-        except Exception:
-            base = {}
-        lines = []
-        for p in peers:
-            b = base.get(peer_key(p), [0, 0])
-            dl = p['tx'] - b[1] if p['tx'] >= b[1] else p['tx']   # счётчик мог обнулиться после перезапуска
-            ul = p['rx'] - b[0] if p['rx'] >= b[0] else p['rx']
-            lines.append((dl + ul, '• %s: ↓ %s, ↑ %s' % (pname(p, names), fmt_b(dl), fmt_b(ul))))
-        if lines:
-            out.append('📊 Трафик VPN за неделю:\n' + '\n'.join(x for _, x in sorted(lines, reverse=True)))
-        A.meta_set('vpn_week', json.dumps({peer_key(p): [p['rx'], p['tx']] for p in peers}))
+    A.meta_set('vpn_last', json.dumps(last)); A.meta_set('vpn_day', json.dumps(day))
     if out and A.meta_get('mon_on', '1') == '1':
         A.notify('\n'.join(out), 'b')
+    # ежедневная статистика за вчера: после 9 утра по Москве
+    if now_dt.hour >= 9:
+        pend = json.loads(A.meta_get('vpn_pending', '[]'))
+        if pend:
+            A.meta_set('vpn_pending', '[]')
+            for dd in pend:
+                A.notify(vpn_report(dd), 'b')
+
+
+def vpn_report(day):
+    rows = []
+    for r in day['p'].values():
+        if r['n'] or r['sec'] >= 60 or r['rx'] + r['tx'] > 100000:
+            rows.append((r['rx'] + r['tx'], '• %s: подключений %d, онлайн %s, ↓ %s ↑ %s' % (r.get('name', '?'), r['n'], fmt_dur(r['sec']), fmt_b(r['tx']), fmt_b(r['rx']))))
+    head = '📊 VPN за %s' % '.'.join(reversed(day['date'].split('-')[1:]))
+    if not rows:
+        return head + ': никто не подключался.'
+    return head + ' (↓ скачано клиентом, ↑ отправлено; подключение = новый сеанс после паузы больше 10 минут):\n' + '\n'.join(x for _, x in sorted(rows, reverse=True))
 
 
 def api(q):
